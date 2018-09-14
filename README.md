@@ -8,7 +8,7 @@ The mission is to have simple and reproducable instructions to be able to setup 
 
 Workflow
 
-<git push> -> [git repo (guthub)] -- webhook --> Jenkins
+{git push} -> [git repo (guthub)] -- webhook --> Jenkins
 
 Jenkins starts to build the image, but only if the repo contains a /Dockerfile or /docker-compose and pushes the image to DTR
 
