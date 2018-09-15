@@ -18,9 +18,18 @@ If the AMI isn't found, search after a new one:
 aws --region eu-central-1 ec2 describe-images --owners aws-marketplace --filters Name=product-code,Values=aw0evgkw8e5c1q413zgy5pjce
 ```
 
+To setup our instances, just run:
+```
+terraform apply
+```
+
 This repo will contain script and terraform files for:
+
 1 x UCP
+
 2 x DTR
+
+
 
 The mission is to have simple and reproducable instructions to be able to setup CICD.
 
