@@ -32,3 +32,13 @@ variable "CentOS7AMI" {
     eu-central-1 = "ami-dd3c0f36"
   }
 }
+
+variable "Managers" {
+  default = "1"
+  description = "Number of Docker managers"
+}
+
+variable "Workers" {
+  default = "2"
+  description = "Number of Docker workers"
+}
