@@ -2,10 +2,8 @@ data "aws_availability_zones" "available" {}
 
 resource "aws_key_pair" "conoa-sshkey" {
   key_name = "Conoa"
-  public_key = "ssh-rsa ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC/p3BYVooBZeuZY3ul/Fo7sjhqnqaLUNwJT7AAmqA66qaTVytuPcIhnEEVrX8gTTILImhGx4QNO8QAtB/Wpv64a6X0v0anGKOzl6/JSs1s95Nz8iDTRHM2ZSH/02UExrFljN2Tq106+yAk+7tRwhbE4ucUVJRtd7svGOk5SlVdLaHw8rUD67dzpRXcSM84FUaLO//cxViHMyQm49Wh/a1ofjhRoLmsZusGHW1M9f1CcWa32sign/xb8BX4Uwe1Xw4Lc01J2Roxx0o5Cre2ccn+oXFllR7X3no+5FXL3reiYngQM7zdYFNIAK12haCvs9RODotKCi5kp4gIr9aRPfVb Gemensam SSH nyckel"
+  public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC/p3BYVooBZeuZY3ul/Fo7sjhqnqaLUNwJT7AAmqA66qaTVytuPcIhnEEVrX8gTTILImhGx4QNO8QAtB/Wpv64a6X0v0anGKOzl6/JSs1s95Nz8iDTRHM2ZSH/02UExrFljN2Tq106+yAk+7tRwhbE4ucUVJRtd7svGOk5SlVdLaHw8rUD67dzpRXcSM84FUaLO//cxViHMyQm49Wh/a1ofjhRoLmsZusGHW1M9f1CcWa32sign/xb8BX4Uwe1Xw4Lc01J2Roxx0o5Cre2ccn+oXFllR7X3no+5FXL3reiYngQM7zdYFNIAK12haCvs9RODotKCi5kp4gIr9aRPfVb Gemensam SSH nyckel"
 }
-
-
 
 resource "aws_vpc" "CICD-vpc" {
     cidr_block = "${var.vpc-cidr}"
@@ -45,7 +43,7 @@ resource "aws_subnet" "public-cidr" {
 
 resource "aws_subnet" "private-cidr" {
   vpc_id = "${aws_vpc.CICD-vpc.id}"
-  cidr_block = "${var.public-cidr}"
+  cidr_block = "${var.private-cidr}"
   tags {
     Name = "CICD"
     Owner = "Robert Söderlund"
@@ -79,7 +77,7 @@ resource "aws_network_acl" "CICD-network-acl" {
     protocol = "-1"
     rule_no = 1
     action = "allow"
-    cidr_block =  "[0.0.0.0/0]"
+    cidr_block =  "0.0.0.0/0"
     from_port = 0
     to_port = 0
   }
@@ -87,7 +85,7 @@ resource "aws_network_acl" "CICD-network-acl" {
     protocol = "-1"
     rule_no = 2
     action = "allow"
-    cidr_block =  "[s0.0.0.0/0]"
+    cidr_block =  "0.0.0.0/0"
     from_port = 0
     to_port = 0
   }
@@ -176,7 +174,7 @@ resource "aws_instance" "ucp01-a" {
   associate_public_ip_address = "true"
   subnet_id = "${aws_subnet.public-cidr.id}"
   vpc_security_group_ids = ["${aws_security_group.Public.id}"]
-  key_name = "${var.sshkey}"
+  key_name = "${aws_key_pair.conoa-sshkey.id}"
   tags {
     Role = "UCP01"
   }
@@ -193,7 +191,7 @@ resource "aws_instance" "dtr01-a" {
   associate_public_ip_address = "false"
   subnet_id = "${aws_subnet.private-cidr.id}"
   vpc_security_group_ids = ["${aws_security_group.Public.id}"]
-  key_name = "${var.sshkey}"
+  key_name = "${aws_key_pair.conoa-sshkey.id}"
   tags {
     Role = "DTR01"
   }
@@ -209,7 +207,7 @@ resource "aws_instance" "dtr02-a" {
   associate_public_ip_address = "false"
   subnet_id = "${aws_subnet.private-cidr.id}"
   vpc_security_group_ids = ["${aws_security_group.Public.id}"]
-  key_name = "${var.sshkey}"
+  key_name = "${aws_key_pair.conoa-sshkey.id}"
   tags {
     Role = "DTR01"
   }

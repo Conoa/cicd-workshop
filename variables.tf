@@ -8,7 +8,7 @@ variable "vpc-cidr" {
 }
 
 variable "public-cidr" {
-  default = "10.0.5.0/24"
+  default = "10.0.6.0/24"
   description = ""
 }
 
