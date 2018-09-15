@@ -1,0 +1,8 @@
+.terraform
+rsa_conoa
+rsa_conoa.pub
+terraform.tfstate
+terraform.tfstate.backup
+credentials.tf
+.gitignore
+.terraform.tfstate.lock.info
