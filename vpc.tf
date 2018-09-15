@@ -184,8 +184,18 @@ resource "aws_instance" "managers" {
   #!/bin/bash
   yum update -y
 HEREDOC
+  connection {
+    user = "centos"
+    password = "${file("./rsa_conoa")}"
+    agent = false
+  }
+  provisioner "file" {
+    source = "provisioning.sh"
+    destination = "/home/centos/provisioning.sh"
+  }
   provisioner "remote-exec" {
     inline = [
+      "sudo provisioning.sh",
       "sudo docker swarm init"
     ]
   }
@@ -208,8 +218,19 @@ resource "aws_instance" "workers" {
   #!/bin/bash
   yum update -y
 HEREDOC
+  connection {
+    type = "ssh"
+    user = "centos"
+    password = "${file("./rsa_conoa")}"
+    agent = false
+  }
+  provisioner "file" {
+    source = "provisioning.sh"
+    destination = "/home/centos/provisioning.sh"
+  }
   provisioner "remote-exec" {
     inline = [
+      "sudo provisioning.sh",
       "sudo docker swarm join ${aws_instance.managers.0.private_ip}:2377 --token $(docker -H ${aws_instance.managers.0.private_ip} swarm join-token -q worker)"
     ]
   }
