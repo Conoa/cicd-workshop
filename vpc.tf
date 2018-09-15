@@ -182,7 +182,7 @@ resource "aws_instance" "ucp01-a" {
   #!/bin/bash
   yum update -y
 HEREDOC
-  count = "2"
+  count = "1"
 }
 
 resource "aws_instance" "dtr01-a" {
