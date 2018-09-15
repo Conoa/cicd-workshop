@@ -168,7 +168,9 @@ resource "aws_security_group" "Public" {
   }
 }
 
-resource "aws_instance" "ucp01-a" {
+resource "aws_instance" "managers" {
+  count = "${var.Managers}"
+  key_name = "manager-${count.index}"
   ami = "${lookup(var.CentOS7AMI, var.region)}"
   instance_type = "t3.xlarge"
   associate_public_ip_address = "true"
@@ -182,10 +184,17 @@ resource "aws_instance" "ucp01-a" {
   #!/bin/bash
   yum update -y
 HEREDOC
-  count = "1"
+  provisioner "remote-exec" {
+    inline = [
+      "sudo docker swarm init"
+    ]
+  }
 }
 
-resource "aws_instance" "dtr01-a" {
+resource "aws_instance" "workers" {
+  count = "${var.Workers}"
+  key_name = "worker-${count.index}"
+  depends_on = ["aws_instance.managers"]
   ami = "${lookup(var.CentOS7AMI, var.region)}"
   instance_type = "t3.large"
   associate_public_ip_address = "false"
@@ -199,21 +208,9 @@ resource "aws_instance" "dtr01-a" {
   #!/bin/bash
   yum update -y
 HEREDOC
-}
-
-resource "aws_instance" "dtr02-a" {
-  ami = "${lookup(var.CentOS7AMI, var.region)}"
-  instance_type = "t3.large"
-  associate_public_ip_address = "false"
-  subnet_id = "${aws_subnet.private-cidr.id}"
-  vpc_security_group_ids = ["${aws_security_group.Public.id}"]
-  key_name = "${aws_key_pair.conoa-sshkey.id}"
-  tags {
-    Role = "DTR01"
+  provisioner "remote-exec" {
+    inline = [
+      "sudo docker swarm join ${aws_instance.managers.0.private_ip}:2377 --token $(docker -H ${aws_instance.managers.0.private_ip} swarm join-token -q worker)"
+    ]
   }
-  user_data = <<HEREDOC
-  #!/bin/bash
-  yum update -y
-HEREDOC
 }
-
