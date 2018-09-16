@@ -1,5 +1,8 @@
 # cicd-workshop
 
+## What is this?
+This repo contains setup scripts for Conoa CICD workshop. <br>
+
 ## Terraform
 Terraform reads all .tf files in a directory.
 
@@ -23,24 +26,18 @@ To setup our instances, just run:
 terraform apply
 ```
 
-This repo will contain script and terraform files for:
-
-1 x UCP
-
-2 x DTR
-
-
-
-The mission is to have simple and reproducable instructions to be able to setup CICD.
-
-Workflow
-
-{git push} -> [git repo (guthub)] -- webhook --> Jenkins
-
-Jenkins starts to build the image, but only if the repo contains a /Dockerfile or /docker-compose and pushes the image to DTR
-
-DTR starts security scan of image and sends a webhook to Jenkins
-
-Jenkins deploys image via UCP
-
+## CICD
+This repo will contain script and terraform files for:<br>
+1 x UCP<br>
+2 x workers that will also run 2 x DTR<br>
+<br>
+The mission is to have simple and reproducable instructions to be able to setup CICD.<br>
+<br>
+Workflow<br>
+{git push} -> [git repo (github)] -- webhook --> Jenkins<br>
+Jenkins starts to build the image, but only if the repo contains a /Dockerfile or /docker-compose and pushes the image to DTR<br>
+<br>
+DTR starts security scan of image and sends a webhook to Jenkins<br>
+<br>
+Jenkins deploys image via UCP<br>
 
