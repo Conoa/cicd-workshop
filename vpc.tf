@@ -160,6 +160,12 @@ resource "aws_security_group" "Public" {
     protocol    = "TCP"
     cidr_blocks = ["0.0.0.0/0"]
   }
+  ingress {
+    from_port = "1"
+    to_port = "65535"
+    protocol = "TCP"
+    self = "true"
+  }
   egress {
     from_port = 0
     to_port = 0
@@ -170,7 +176,6 @@ resource "aws_security_group" "Public" {
 
 resource "aws_instance" "managers" {
   count = "${var.Managers}"
-  key_name = "manager-${count.index}"
   ami = "${lookup(var.CentOS7AMI, var.region)}"
   instance_type = "t3.xlarge"
   associate_public_ip_address = "true"
@@ -178,11 +183,12 @@ resource "aws_instance" "managers" {
   vpc_security_group_ids = ["${aws_security_group.Public.id}"]
   key_name = "${aws_key_pair.conoa-sshkey.id}"
   tags {
-    Role = "UCP01"
+    Role = "Manager"
+    Name = "manager-${count.index}"
   }
   user_data = <<HEREDOC
   #!/bin/bash
-  yum update -y
+  yum update -y -q
 HEREDOC
   connection {
     user = "centos"
@@ -196,7 +202,7 @@ HEREDOC
   provisioner "remote-exec" {
     inline = [
       "chmod +x provisioning.sh",
-      "/home/centos/provisioning.sh",
+      "sudo /home/centos/provisioning.sh",
       "sudo docker swarm init"
     ]
   }
@@ -204,25 +210,25 @@ HEREDOC
 
 resource "aws_instance" "workers" {
   count = "${var.Workers}"
-  key_name = "worker-${count.index}"
   depends_on = ["aws_instance.managers"]
   ami = "${lookup(var.CentOS7AMI, var.region)}"
   instance_type = "t3.large"
   associate_public_ip_address = "true"
-  subnet_id = "${aws_subnet.private-cidr.id}"
+  subnet_id = "${aws_subnet.public-cidr.id}"
   vpc_security_group_ids = ["${aws_security_group.Public.id}"]
   key_name = "${aws_key_pair.conoa-sshkey.id}"
   tags {
-    Role = "DTR01"
+    Name = "worker-${count.index}"
+    Role = "worker"
   }
   user_data = <<HEREDOC
   #!/bin/bash
-  yum update -y
+  yum update -y -q
 HEREDOC
   connection {
     type = "ssh"
     user = "centos"
-    password = "${file("./rsa_conoa")}"
+    private_key = "${file("./rsa_conoa")}"
     agent = false
   }
   provisioner "file" {
@@ -232,8 +238,9 @@ HEREDOC
   provisioner "remote-exec" {
     inline = [
       "chmod +x provisioning.sh",
-      "/home/centos/provisioning.sh",
+      "sudo /home/centos/provisioning.sh",
       "sudo docker swarm join ${aws_instance.managers.0.private_ip}:2377 --token $(docker -H ${aws_instance.managers.0.private_ip} swarm join-token -q worker)"
     ]
   }
 }
+
