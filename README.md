@@ -3,6 +3,11 @@
 ## What is this?
 This repo contains setup scripts for Conoa CICD workshop. <br>
 
+## Todo
+- [x] Terraform a docker swarm in AWS
+- [ ] Simple copy n' paste for UCP + 2 DTR
+
+
 ## Terraform
 Terraform reads all .tf files in a directory.
 
@@ -25,6 +30,33 @@ To setup our instances, just run:
 ```
 terraform apply
 ```
+
+## UCP
+Setup UCP with
+```
+docker container run -it --rm --name=ucp -v /var/run/docker.sock:/var/run/docker.sock docker/ucp:latest install \
+  --admin-username admin  \
+  --admin-password changeme \
+  --san manager.cicd.conoa.se \
+  --san worker1.cicd.conoa.se \
+  --san worker2.cicd.conoa.se \
+  --san ucp.cicd.conoa.se \
+  --san dtr1.cicd.conoa.se \
+  --san dtr2.cicd.conoa.se \
+  --controller-port 443 \
+  --disable-tracking \
+  --disable-usage
+```
+
+## DTR
+Setup DTR with 
+```
+docker container run -it --rm --name=dtr
+```
+
+## Jenkins
+
+
 
 ## CICD
 This repo will contain script and terraform files for:<br>

@@ -5,7 +5,7 @@ resource "aws_key_pair" "conoa-sshkey" {
   public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC/p3BYVooBZeuZY3ul/Fo7sjhqnqaLUNwJT7AAmqA66qaTVytuPcIhnEEVrX8gTTILImhGx4QNO8QAtB/Wpv64a6X0v0anGKOzl6/JSs1s95Nz8iDTRHM2ZSH/02UExrFljN2Tq106+yAk+7tRwhbE4ucUVJRtd7svGOk5SlVdLaHw8rUD67dzpRXcSM84FUaLO//cxViHMyQm49Wh/a1ofjhRoLmsZusGHW1M9f1CcWa32sign/xb8BX4Uwe1Xw4Lc01J2Roxx0o5Cre2ccn+oXFllR7X3no+5FXL3reiYngQM7zdYFNIAK12haCvs9RODotKCi5kp4gIr9aRPfVb Gemensam SSH nyckel"
 }
 
-resource "aws_vpc" "${var.prefix}-CICD-vpc" {
+resource "aws_vpc" "CICD-vpc" {
     cidr_block = "${var.vpc-cidr}"
     enable_dns_support = true
     enable_dns_hostnames = true
@@ -16,7 +16,7 @@ resource "aws_vpc" "${var.prefix}-CICD-vpc" {
     }
 }
 
-resource "aws_internet_gateway" "${var.prefix}-igw" {
+resource "aws_internet_gateway" "igw" {
   vpc_id = "${aws_vpc.CICD-vpc.id}"
     tags {
       Name = "${var.owner}-vpc"
