@@ -131,16 +131,25 @@ resource "aws_vpc_dhcp_options_association" "dns_resolver" {
 resource "aws_route53_zone" "DnsZone" {
   name = "${var.DnsZoneName}"
   vpc_id = "${aws_vpc.CICD-vpc.id}"
-  comment = "Managed by terraform"
+  comment = "Robert Soderlund"
 }
 
-/*resource "aws_route53_record" "cicd_conoa_se" {
+resource "aws_route53_record" "managers" {
+  count = "${var.Managers}"
    zone_id = "${aws_route53_zone.DnsZone.zone_id}"
-   name = "ucp01-a.${var.DnsZoneName}"
+   name = "manager-${count.index}"
    type = "A"
    ttl = "300"
-   records = ["${aws_instance.ucp01-a.public_ip}"]
-}*/
+   records = ["${element(aws_instance.managers.*.public_ip, count.index)}"]
+}
+resource "aws_route53_record" "swarm" {
+  count = "${var.Workers}"
+   zone_id = "${aws_route53_zone.DnsZone.zone_id}"
+   name = "swarm-${count.index}"
+   type = "A"
+   ttl = "300"
+   records = ["${element(aws_instance.workers.*.public_ip, count.index)}"]
+}
 
 resource "aws_security_group" "Public" {
   name = "Public"
@@ -160,6 +169,12 @@ resource "aws_security_group" "Public" {
   ingress {
     from_port   = "22"
     to_port     = "22"
+    protocol    = "TCP"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  ingress {
+    from_port   = "8443"
+    to_port     = "8443"
     protocol    = "TCP"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -242,7 +257,7 @@ HEREDOC
     inline = [
       "chmod +x provisioning.sh",
       "sudo /home/centos/provisioning.sh",
-      "sudo docker swarm join ${aws_instance.managers.0.private_ip}:2377 --token $(docker -H ${aws_instance.managers.0.private_ip} swarm join-token -q worker)"
+      "sudo docker swarm join ${aws_instance.managers.0.private_ip}:2377 --token $(docker -H ${aws_instance.managers.0.private_ip} swarm join-token -q manager)"
     ]
   }
 }
