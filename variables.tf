@@ -1,3 +1,16 @@
+variable "owner" {
+  default = "Robert Söderlund"
+}
+
+variable "project" {
+  default = "CICD Workshop"
+}
+
+variable "prefix" {
+  default = "CICD"
+}
+
+
 variable "region" {
   default = "eu-central-1"
 }
