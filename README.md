@@ -6,6 +6,8 @@ This repo contains setup scripts for Conoa CICD workshop. <br>
 ## Todo
 - [x] Terraform a docker swarm in AWS
 - [ ] Simple copy n' paste for UCP + 2 DTR
+- [ ] Better provisioning (docker shouldn't listen on *:2375)
+
 
 
 ## Terraform
@@ -40,6 +42,9 @@ cat << EOT | sudo tee /etc/docker/daemon.json
 }
 EOT
 sudo systemctl restart docker
+```
+You need to run the above on all nodes
+```
 docker container run -it --rm --name=ucp -v /var/run/docker.sock:/var/run/docker.sock docker/ucp:latest install \
   --admin-username admin  \
   --admin-password changeme \
@@ -58,23 +63,16 @@ Browse to UCP node and configure:
 * Layer 7 routing
 
 ## DTR
-Setup DTR-1 with 
+Setup DTR
 ```
 docker run -it --rm docker/dtr:latest install \
   --ucp-insecure-tls \
   --ucp-password changeme \
   --ucp-username admin \
-  --ucp-url https://54.93.166.245 \
-  --ucp-node ip-10-0-6-14.cicd.conoa.se
-```
-Setup DTR-2 with 
-```
-docker run -it --rm docker/dtr:latest install \
-  --ucp-insecure-tls \
-  --ucp-password changeme \
-  --ucp-username admin \
-  --ucp-url https://54.93.166.245 \
-  --ucp-node ip-10-0-6-132.cicd.conoa.se
+  --ucp-url https://manager-0.cicd.conoa.se \
+  --ucp-node swarm-0 \
+  --replica-https-port 444 \
+  --replica-http-port 81
 ```
 
 ## Jenkins
