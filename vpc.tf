@@ -162,7 +162,7 @@ resource "aws_security_group" "Public" {
   }
   ingress {
     from_port   = "443"
-    to_port     = "443"
+    to_port     = "444"
     protocol    = "TCP"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -219,6 +219,7 @@ HEREDOC
   }
   provisioner "remote-exec" {
     inline = [
+      "sudo hostnamectl set-hostname manager-${count.index}",
       "chmod +x provisioning.sh",
       "sudo /home/centos/provisioning.sh",
       "sudo docker swarm init"
@@ -255,6 +256,7 @@ HEREDOC
   }
   provisioner "remote-exec" {
     inline = [
+      "sudo hostnamectl set-hostname swarm-${count.index}",
       "chmod +x provisioning.sh",
       "sudo /home/centos/provisioning.sh",
       "sudo docker swarm join ${aws_instance.managers.0.private_ip}:2377 --token $(docker -H ${aws_instance.managers.0.private_ip} swarm join-token -q manager)"
