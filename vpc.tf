@@ -186,7 +186,7 @@ resource "aws_instance" "managers" {
 HEREDOC
   connection {
     user = "centos"
-    password = "${file("./rsa_conoa")}"
+    private_key = "${file("./rsa_conoa")}"
     agent = false
   }
   provisioner "file" {
@@ -195,7 +195,8 @@ HEREDOC
   }
   provisioner "remote-exec" {
     inline = [
-      "sudo provisioning.sh",
+      "chmod +x provisioning.sh",
+      "/home/centos/provisioning.sh",
       "sudo docker swarm init"
     ]
   }
@@ -230,7 +231,8 @@ HEREDOC
   }
   provisioner "remote-exec" {
     inline = [
-      "sudo provisioning.sh",
+      "chmod +x provisioning.sh",
+      "/home/centos/provisioning.sh",
       "sudo docker swarm join ${aws_instance.managers.0.private_ip}:2377 --token $(docker -H ${aws_instance.managers.0.private_ip} swarm join-token -q worker)"
     ]
   }
