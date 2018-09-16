@@ -208,7 +208,7 @@ resource "aws_instance" "workers" {
   depends_on = ["aws_instance.managers"]
   ami = "${lookup(var.CentOS7AMI, var.region)}"
   instance_type = "t3.large"
-  associate_public_ip_address = "false"
+  associate_public_ip_address = "true"
   subnet_id = "${aws_subnet.private-cidr.id}"
   vpc_security_group_ids = ["${aws_security_group.Public.id}"]
   key_name = "${aws_key_pair.conoa-sshkey.id}"
