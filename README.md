@@ -34,12 +34,18 @@ terraform apply
 ## UCP
 Setup UCP with
 ```
+cat << EOT | sudo tee /etc/docker/daemon.json
+{
+"hosts": ["unix:///var/run/docker.sock"]
+}
+EOT
+sudo systemctl restart docker
 docker container run -it --rm --name=ucp -v /var/run/docker.sock:/var/run/docker.sock docker/ucp:latest install \
   --admin-username admin  \
   --admin-password changeme \
-  --san manager.cicd.conoa.se \
-  --san worker1.cicd.conoa.se \
-  --san worker2.cicd.conoa.se \
+  --san manager-0.cicd.conoa.se \
+  --san swarm-0.cicd.conoa.se \
+  --san swarm-1.cicd.conoa.se \
   --san ucp.cicd.conoa.se \
   --san dtr1.cicd.conoa.se \
   --san dtr2.cicd.conoa.se \
@@ -47,11 +53,28 @@ docker container run -it --rm --name=ucp -v /var/run/docker.sock:/var/run/docker
   --disable-tracking \
   --disable-usage
 ```
+Browse to UCP node and configure:
+* Add license
+* Layer 7 routing
 
 ## DTR
-Setup DTR with 
+Setup DTR-1 with 
 ```
-docker container run -it --rm --name=dtr
+docker run -it --rm docker/dtr:latest install \
+  --ucp-insecure-tls \
+  --ucp-password changeme \
+  --ucp-username admin \
+  --ucp-url https://54.93.166.245 \
+  --ucp-node ip-10-0-6-14.cicd.conoa.se
+```
+Setup DTR-2 with 
+```
+docker run -it --rm docker/dtr:latest install \
+  --ucp-insecure-tls \
+  --ucp-password changeme \
+  --ucp-username admin \
+  --ucp-url https://54.93.166.245 \
+  --ucp-node ip-10-0-6-132.cicd.conoa.se
 ```
 
 ## Jenkins
