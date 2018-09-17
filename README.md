@@ -4,8 +4,8 @@
 This repo contains setup scripts for Conoa CICD workshop. <br>
 
 ## Workshop workflow
-1. [Install docker](#headers)
-2. Install UCP + DTR på en maskin + 1 worker i dev
+1. [Install docker](#step1)
+2. [Install UCP + DTR på en maskin + 1 worker i dev]
 3. Install UCP + DTR på en maskin + 1 worker i prod
 4. Lägg upp license i dev + prod
 5. Sätt upp CA-trust på alla 4 maskiner
@@ -18,8 +18,9 @@ This repo contains setup scripts for Conoa CICD workshop. <br>
 12. När en ny tag pushas in i dev-DTR så ska en säkerhetscan startas
   * Om sec-scan har mer än 1 critical: promota image till admin/vulnerable-app
   * Om sec-scan har 0 crit: promota image (mirror) till prod-dtr/admin/app
+13. Manuell deploy av image till prod.
 
-<a name="headers"/><h3>Install docker</h3></a>
+<a name="step1"/><h3>Install docker</h3></a>
 ```
 export DOCKERURL="https://storebits.docker.com/ee/centos/sub-7019e3a8-f1cf-434c-b454-952669b3e8b2"
 echo "$DOCKERURL/centos" > /etc/yum/vars/dockerurl
@@ -28,6 +29,38 @@ yum-config-manager --add-repo "$DOCKERURL/centos/docker-ee.repo"
 yum-config-manager --enable docker-ee-stable-17.06
 yum -y -q install docker-ee
 ```
+<a name="step2"/><h3>Install UCP + DTR på en maskin + 1 worker i dev]</h3></a>
+```
+docker container run -it --rm --name=ucp -v /var/run/docker.sock:/var/run/docker.sock docker/ucp:latest install \
+  --admin-username admin  \
+  --admin-password changeme \
+  --san dev-ucp.cicd.conoa.se \
+  --san dev-worker.cicd.conoa.se \
+  --san dev-dtr.cicd.conoa.se \
+  --controller-port 443 \
+  --disable-tracking \
+  --disable-usage
+```
+<a name="step3"/><h3>Install UCP + DTR på en maskin + 1 worker i prod</h3></a>
+```
+docker container run -it --rm --name=ucp -v /var/run/docker.sock:/var/run/docker.sock docker/ucp:latest install \
+  --admin-username admin  \
+  --admin-password changeme \
+  --san manager-0.cicd.conoa.se \
+  --san swarm-0.cicd.conoa.se \
+  --san swarm-1.cicd.conoa.se \
+  --san ucp.cicd.conoa.se \
+  --san dtr1.cicd.conoa.se \
+  --san dtr2.cicd.conoa.se \
+  --controller-port 443 \
+  --disable-tracking \
+  --disable-usage
+```
+
+
+
+
+
 
 ## Todo
 - [x] Terraform a docker swarm in AWS
