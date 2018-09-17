@@ -3,6 +3,24 @@
 ## What is this?
 This repo contains setup scripts for Conoa CICD workshop. <br>
 
+## Workshop workflow
+1. Install docker
+2. Install UCP + DTR på en maskin + 1 worker i dev
+3. Install UCP + DTR på en maskin + 1 worker i prod
+4. Lägg upp license i dev + prod
+5. Sätt upp CA-trust på alla 4 maskiner
+6. Skapa repot admin/jenkins i dev-DTR
+7. Bygg en Jenkins image och pusha till dev-dtr/admin/jenkins
+8. Starta jenkins container i dev-worker
+9. Skapa ett admin/app repo i dev och ett admin/app repo i prod
+10. Sätt upp ett github-repo med webhook mot vår test-dtr
+11. Skapa ett jenkins jobb som ska bygga vår test applikation, samt pusha till dev-DTR
+12. När en ny tag pushas in i dev-DTR så ska en säkerhetscan startas
+  * Om sec-scan har mer än 1 critical: promota image till admin/vulnerable-app
+  * Om sec-scan har 0 crit: promota image (mirror) till prod-dtr/admin/app
+
+
+
 ## Todo
 - [x] Terraform a docker swarm in AWS
 - [ ] Simple copy n' paste for UCP + 2 DTR
