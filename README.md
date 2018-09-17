@@ -6,7 +6,8 @@ This repo contains setup scripts for Conoa CICD workshop. <br>
 ## Todo
 - [x] Terraform a docker swarm in AWS
 - [ ] Simple copy n' paste for UCP + 2 DTR
-- [ ] Better provisioning (docker shouldn't listen on *:2375)
+- [ ] Better provisioning (docker shouldn't listen on *:2375 *)
+- [ ] Add unzip at cloud-init
 
 
 
@@ -73,6 +74,7 @@ docker run -it --rm docker/dtr:latest install \
   --ucp-node swarm-0 \
   --replica-https-port 444 \
   --replica-http-port 81
+  --dtr-external-url https://dtr1.cicd.conoa.se:444
 ```
 
 ## Jenkins
@@ -103,13 +105,40 @@ We also need a docker-compose.yml (stacks/jenkins/docker-compose.yml):
 version: '3.5'
 services:
   jenkins:
-    image: ourjenkins
+    image: dtr1.cicd.conoa.se:444/admin/ourjenkins
     build:
       context: ./build
     ports:
       - "8080:8080"
+    deploy:
+      com.docker.lb.hosts: jenkins.cicd.conoa.se
+      com.docker.lb.network: jenkins-network
+      com.docker.lb.port: 80
+    networks:
+      - jenkins-network
+networks:
+  jenkins:
+    driver: overlay
 ```
-
+We need some credentials
+```
+UCP_FQDN=manager-0.cicd.conoa.se
+DTR_FQDN=dtr1.cicd.conoa.se:444
+AUTHTOKEN=$(curl -sk -d '{"username":"admin","password":"changeme"}' https://${UCP_FQDN}/auth/login | cut -d\" -f4)
+curl -k -H "Authorization: Bearer $AUTHTOKEN" -s https://${UCP_FQDN}/api/clientbundle -o bundle.zip && unzip -o bundle.zip
+export DOCKER_TLS_VERIFY=1
+export COMPOSE_TLS_VERSION=TLSv1_2
+export DOCKER_CERT_PATH=$PWD
+export DOCKER_HOST=tcp://${UCP_FQDN}:443
+docker login -u admin -p changeme https://${DTR_FQDN}
+```
+Now let the swarm build and run our Jenkins container
+```
+docker-compose -f stacks/jenkins/docker-compose.yml build jenkins
+docker-compose -f stacks/jenkins/docker-compose.yml push jenkins
+docker stack deploy -c stacks/jenkins/docker-compose.yml jenkins
+```
+Enable DTR security scanning
 
 
 
