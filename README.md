@@ -23,13 +23,16 @@ This repo contains setup scripts for Conoa CICD workshop. <br>
 <a name="step1"><h3>Install docker</h3></a>
 ```
 export DOCKERURL="https://storebits.docker.com/ee/centos/sub-7019e3a8-f1cf-434c-b454-952669b3e8b2"
-echo "$DOCKERURL/centos" > /etc/yum/vars/dockerurl
-yum install -y yum-utils device-mapper-persistent-data lvm2
-yum-config-manager --add-repo "$DOCKERURL/centos/docker-ee.repo"
-yum-config-manager --enable docker-ee-stable-17.06
-yum -y -q install docker-ee
+echo "$DOCKERURL/centos" | sudo tee /etc/yum/vars/dockerurl
+sudo yum install -y yum-utils device-mapper-persistent-data lvm2
+sudo yum-config-manager --add-repo "$DOCKERURL/centos/docker-ee.repo"
+sudo yum-config-manager --enable docker-ee-stable-17.06
+sudo yum -y -q install docker-ee unzip
+sudo systemctl start docker
+sudo systemctl enable docker
+sudo usermod -a -G docker centos
 ```
-<a name="step2"><h3>Install UCP + DTR på en maskin + 1 worker i dev]</h3></a>
+<a name="step2"><h3>Install UCP på en maskin + 1 worker i dev]</h3></a>
 ```
 docker container run -it --rm --name=ucp -v /var/run/docker.sock:/var/run/docker.sock docker/ucp:latest install \
   --admin-username admin  \
@@ -40,21 +43,44 @@ docker container run -it --rm --name=ucp -v /var/run/docker.sock:/var/run/docker
   --controller-port 443 \
   --disable-tracking \
   --disable-usage
+docker swarm join-token worker
 ```
-<a name="step3"><h3>Install UCP + DTR på en maskin + 1 worker i prod</h3></a>
+### Install DTR
+```
+docker run -it --rm docker/dtr:latest install \
+  --ucp-insecure-tls \
+  --ucp-password changeme \
+  --ucp-username admin \
+  --ucp-url https://dev-ucp.cicd.conoa.se \
+  --ucp-node dev-worker \
+  --replica-https-port 4443 \
+  --replica-http-port 81 \
+  --dtr-external-url https://dev-dtr.cicd.conoa.se:4443
+```
+
+<a name="step3"><h3>Install UCP på en maskin + 1 worker i prod</h3></a>
 ```
 docker container run -it --rm --name=ucp -v /var/run/docker.sock:/var/run/docker.sock docker/ucp:latest install \
   --admin-username admin  \
   --admin-password changeme \
-  --san manager-0.cicd.conoa.se \
-  --san swarm-0.cicd.conoa.se \
-  --san swarm-1.cicd.conoa.se \
-  --san ucp.cicd.conoa.se \
-  --san dtr1.cicd.conoa.se \
-  --san dtr2.cicd.conoa.se \
+  --san prod-ucp.cicd.conoa.se \
+  --san dev-dtr.cicd.conoa.se \
+  --san dev-worker.cicd.conoa.se \
   --controller-port 443 \
   --disable-tracking \
   --disable-usage
+```
+### Install DTR
+```
+docker run -it --rm docker/dtr:latest install \
+  --ucp-insecure-tls \
+  --ucp-password changeme \
+  --ucp-username admin \
+  --ucp-url https://prod-ucp.cicd.conoa.se \
+  --ucp-node prod-worker \
+  --replica-https-port 4443 \
+  --replica-http-port 81 \
+  --dtr-external-url https://prod-dtr.cicd.conoa.se:4443
 ```
 <a name="step4">Lägg upp license i dev + prod</h3></a>
 Görs i GUI
