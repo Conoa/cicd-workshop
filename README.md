@@ -4,7 +4,7 @@
 This repo contains setup scripts for Conoa CICD workshop. <br>
 
 ## Workshop workflow
-1. Install docker
+1. [Install docker](#headers)
 2. Install UCP + DTR på en maskin + 1 worker i dev
 3. Install UCP + DTR på en maskin + 1 worker i prod
 4. Lägg upp license i dev + prod
@@ -19,7 +19,8 @@ This repo contains setup scripts for Conoa CICD workshop. <br>
   * Om sec-scan har mer än 1 critical: promota image till admin/vulnerable-app
   * Om sec-scan har 0 crit: promota image (mirror) till prod-dtr/admin/app
 
-
+<a name="headers"/>
+## Install docker
 
 ## Todo
 - [x] Terraform a docker swarm in AWS
