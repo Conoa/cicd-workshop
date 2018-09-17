@@ -45,7 +45,7 @@ docker container run -it --rm --name=ucp -v /var/run/docker.sock:/var/run/docker
   --disable-usage
 docker swarm join-token worker
 ```
-### Install DTR
+### Installera DTR
 ```
 docker run -it --rm docker/dtr:latest install \
   --ucp-insecure-tls \
@@ -69,8 +69,9 @@ docker container run -it --rm --name=ucp -v /var/run/docker.sock:/var/run/docker
   --controller-port 443 \
   --disable-tracking \
   --disable-usage
+docker swarm join-token worker
 ```
-<h3>Install DTR</h3>
+### Installera DTR
 ```
 docker run -it --rm docker/dtr:latest install \
   --ucp-insecure-tls \
@@ -83,8 +84,9 @@ docker run -it --rm docker/dtr:latest install \
   --dtr-external-url https://prod-dtr.cicd.conoa.se:4443
 ```
 
-<a name="step4">Lägg upp license i dev + prod</h3></a>
+<a name="step4">Lägg upp licensen i dev + prod</h3></a>
 Görs i GUI
+
 <a name="step5">Sätt upp CA-trust på alla 4 maskiner</h3></a>
 ```
 export DTR_FQDN="dev-dtr.cicd.conoa.se:4443"
