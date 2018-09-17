@@ -185,12 +185,15 @@ curl -I -H "host: dev-jenkins.cicd.conoa.se" http://dev-jenkins.cicd.conoa.se
 
 ## Konfigurera ett build jobb i Jenkins
 1. Skapa nytt item
-2. Name: Byggjobb
-3. Typ: Freestyle
-4. 
+1. Name: Byggjobb
+1. Typ: Freestyle
+1. OK
+1. Ta bort gamla byggen
+ 1. Max byggen: 0
+1. SCM
+ 
 
 ## Skapa DTR repo i både dev och prod för vår kommande app
-<a name="step10"><h3>Skapa ett admin/app repo i dev och ett admin/app repo i prod</h3></a>
 http://dev-dtr.cicd.conoa.se:4443 -> new repo -> admin / app
 http://prod-dtr.cicd.conoa.se:4443 -> new repo -> admin / app
 
