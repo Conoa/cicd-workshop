@@ -70,7 +70,7 @@ docker container run -it --rm --name=ucp -v /var/run/docker.sock:/var/run/docker
   --disable-tracking \
   --disable-usage
 ```
-### Install DTR
+<h3>Install DTR</h3>
 ```
 docker run -it --rm docker/dtr:latest install \
   --ucp-insecure-tls \
@@ -82,6 +82,7 @@ docker run -it --rm docker/dtr:latest install \
   --replica-http-port 81 \
   --dtr-external-url https://prod-dtr.cicd.conoa.se:4443
 ```
+
 <a name="step4">Lägg upp license i dev + prod</h3></a>
 Görs i GUI
 <a name="step5">Sätt upp CA-trust på alla 4 maskiner</h3></a>
