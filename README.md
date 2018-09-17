@@ -19,8 +19,7 @@ This repo contains setup scripts for Conoa CICD workshop. <br>
   * Om sec-scan har mer än 1 critical: promota image till admin/vulnerable-app
   * Om sec-scan har 0 crit: promota image (mirror) till prod-dtr/admin/app
 
-### Install docker
-<a name="headers"/>
+<a name="headers"/>### Install docker</a>
 ```
 export DOCKERURL="https://storebits.docker.com/ee/centos/sub-7019e3a8-f1cf-434c-b454-952669b3e8b2"
 echo "$DOCKERURL/centos" > /etc/yum/vars/dockerurl
