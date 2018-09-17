@@ -73,13 +73,14 @@ docker run -it --rm docker/dtr:latest install \
   --ucp-url https://manager-0.cicd.conoa.se \
   --ucp-node swarm-0 \
   --replica-https-port 444 \
-  --replica-http-port 81
+  --replica-http-port 81 \
   --dtr-external-url https://dtr1.cicd.conoa.se:444
 ```
-
 ## Jenkins
 We need to use a special Jenkins Dockerfile (stacks/jenkins/build/Dockerfile):
 ```
+mkdir -p stacks/jenkins/build/
+cat << EOT > stacks/jenkins/build/Dockerfile
 FROM jenkins/jenkins:lts
 USER root
 ENV JAVA_OPTS "-Djenkins.install.runSetupWizard=false"
@@ -99,13 +100,16 @@ RUN touch /var/jenkins_home/.last_exec_version && \
     echo 2.0 > /var/jenkins_home/upgraded && \
     mkdir /var/jenkins_home/jobs/ &&
     /usr/local/bin/install-plugins.sh generic-webhook-trigger
+EOT
 ```
 We also need a docker-compose.yml (stacks/jenkins/docker-compose.yml):
 ```
+mkdir -p stacks/jenkins/
+cat << EOT > stacks/jenkins/docker-compose.yml
 version: '3.5'
 services:
   jenkins:
-    image: dtr1.cicd.conoa.se:444/admin/ourjenkins
+    image: dtr1.cicd.conoa.se:444/admin/jenkins
     build:
       context: ./build
     ports:
@@ -119,6 +123,7 @@ services:
 networks:
   jenkins:
     driver: overlay
+EOT
 ```
 We need some credentials
 ```

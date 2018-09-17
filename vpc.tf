@@ -139,7 +139,7 @@ resource "aws_route53_record" "managers" {
    zone_id = "${aws_route53_zone.DnsZone.zone_id}"
    name = "manager-${count.index}"
    type = "A"
-   ttl = "300"
+   ttl = "60"
    records = ["${element(aws_instance.managers.*.public_ip, count.index)}"]
 }
 resource "aws_route53_record" "swarm" {
@@ -147,7 +147,7 @@ resource "aws_route53_record" "swarm" {
    zone_id = "${aws_route53_zone.DnsZone.zone_id}"
    name = "swarm-${count.index}"
    type = "A"
-   ttl = "300"
+   ttl = "60"
    records = ["${element(aws_instance.workers.*.public_ip, count.index)}"]
 }
 
@@ -155,7 +155,7 @@ resource "aws_route53_record" "dtr1" {
   zone_id = "${aws_route53_zone.DnsZone.zone_id}"
   name = "dtr1"
   type = "CNAME"
-  ttl = "300"
+  ttl = "60"
   records = ["swarm-0"]
 }
 
