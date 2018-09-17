@@ -189,7 +189,7 @@ curl -I -H "host: dev-jenkins.cicd.conoa.se" http://dev-jenkins.cicd.conoa.se
 1. Typ: Freestyle
 1. OK
 1. Ta bort gamla byggen
-  1. Max byggen: 0
+   1.  Max byggen: 0
 1. SCM
  
 
