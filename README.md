@@ -64,8 +64,8 @@ docker container run -it --rm --name=ucp -v /var/run/docker.sock:/var/run/docker
   --admin-username admin  \
   --admin-password changeme \
   --san prod-ucp.cicd.conoa.se \
-  --san dev-dtr.cicd.conoa.se \
-  --san dev-worker.cicd.conoa.se \
+  --san prod-dtr.cicd.conoa.se \
+  --san prod-worker.cicd.conoa.se \
   --controller-port 443 \
   --disable-tracking \
   --disable-usage
