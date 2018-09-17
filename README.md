@@ -84,7 +84,7 @@ docker run -it --rm docker/dtr:latest install \
   --dtr-external-url https://prod-dtr.cicd.conoa.se:4443
 ```
 
-<a name="step4">Lägg upp licensen i dev + prod</h3></a>
+<a name="step4"><h3>Lägg upp licensen i dev + prod</h3></a>
 Görs i GUI
 
 <a name="step5">Sätt upp CA-trust på alla 4 maskiner</h3></a>
