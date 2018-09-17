@@ -1,0 +1,19 @@
+version: '3.5'
+services:
+  jenkins:
+    image: dtr1.cicd.conoa.se:444/admin/ourjenkins
+    build:
+      context: ./build
+    ports:
+      - "8080:8080"
+    deploy:
+      labels:
+        com.docker.lb.hosts: jenkins.cicd.conoa.se
+        com.docker.lb.network: jenkins-network
+        com.docker.lb.port: "80"
+    networks:
+      - jenkins-network
+networks:
+  jenkins-network:
+    driver: overlay
+
