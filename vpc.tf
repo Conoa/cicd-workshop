@@ -151,6 +151,14 @@ resource "aws_route53_record" "swarm" {
    records = ["${element(aws_instance.workers.*.public_ip, count.index)}"]
 }
 
+resource "aws_route53_record" "dtr1" {
+  zone_id = "${aws_route53_zone.DnsZone.zone_id}"
+  name = "dtr1"
+  type = "CNAME"
+  ttl = "300"
+  records = ["swarm-0"]
+}
+
 resource "aws_security_group" "Public" {
   name = "Public"
   vpc_id = "${aws_vpc.CICD-vpc.id}"
@@ -204,6 +212,10 @@ resource "aws_instance" "managers" {
     Role = "Manager"
     Name = "manager-${count.index}"
   }
+  root_block_device {
+    volume_size = "100"
+    delete_on_termination = "true"
+  }
   user_data = <<HEREDOC
   #!/bin/bash
   yum update -y -q
@@ -239,6 +251,10 @@ resource "aws_instance" "workers" {
   tags {
     Name = "worker-${count.index}"
     Role = "worker"
+  }
+  root_block_device {
+    volume_size = "100"
+    delete_on_termination = "true"
   }
   user_data = <<HEREDOC
   #!/bin/bash
