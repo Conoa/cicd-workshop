@@ -183,6 +183,16 @@ docker stack deploy -c docker-compose.yml jenkins
 curl -I -H "host: dev-jenkins.cicd.conoa.se" http://dev-jenkins.cicd.conoa.se
 ```
 
+## Skapa DTR repo i både dev och prod för vår kommande app
+http://dev-dtr.cicd.conoa.se:4443 -> new repo -> admin / app
+http://prod-dtr.cicd.conoa.se:4443 -> new repo -> admin / app
+
+## Forka dops-final-project
+1. https://github.com/docker-training/dops-final-project -> Fork
+1. Gå in i det forkade repot
+1. Settings (https://github.com/rjes/dops-final-project/settings)
+1. Webhooks (https://github.com/rjes/dops-final-project/settings/hooks)
+
 ## Konfigurera ett build jobb i Jenkins
 1. Skapa nytt item
 1. Name: Byggjobb
@@ -191,18 +201,12 @@ curl -I -H "host: dev-jenkins.cicd.conoa.se" http://dev-jenkins.cicd.conoa.se
 1. Ta bort gamla byggen
    1.  Max byggen: 0
 1. SCM
+   1. Git
+   1. Repo URL: git@github.com:rjes/dops-final-project.git
+1. Build triggers
+   1. Generic webhook trigger
+   1. 
  
-
-## Skapa DTR repo i både dev och prod för vår kommande app
-http://dev-dtr.cicd.conoa.se:4443 -> new repo -> admin / app
-http://prod-dtr.cicd.conoa.se:4443 -> new repo -> admin / app
-
-## Sätt upp ett gitrepo
-1. https://github.com/docker-training/dops-final-project -> Fork
-2. Gå in i det forkade repot
-3. Settings (https://github.com/rjes/dops-final-project/settings)
-4. Webhooks (https://github.com/rjes/dops-final-project/settings/hooks)
-5. 
 
 
 <a name="step11"><h3>Sätt upp ett github-repo med webhook mot vår test-dtr</h3></a>
