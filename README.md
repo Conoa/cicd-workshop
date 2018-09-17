@@ -19,8 +19,8 @@ This repo contains setup scripts for Conoa CICD workshop. <br>
   * Om sec-scan har mer än 1 critical: promota image till admin/vulnerable-app
   * Om sec-scan har 0 crit: promota image (mirror) till prod-dtr/admin/app
 
-<a name="headers"/>
 ## Install docker
+<a name="headers"/>
 
 ## Todo
 - [x] Terraform a docker swarm in AWS
