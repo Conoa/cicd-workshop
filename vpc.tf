@@ -134,29 +134,47 @@ resource "aws_route53_zone" "DnsZone" {
   comment = "Robert Soderlund"
 }
 
-resource "aws_route53_record" "managers" {
-  count = "${var.Managers}"
+resource "aws_route53_record" "dev-ucp" {
    zone_id = "${aws_route53_zone.DnsZone.zone_id}"
-   name = "manager-${count.index}"
+   name = "dev-ucp"
    type = "A"
    ttl = "60"
-   records = ["${element(aws_instance.managers.*.public_ip, count.index)}"]
+   records = ["${aws_instance.dev-ucp.public_ip}"]
 }
-resource "aws_route53_record" "swarm" {
-  count = "${var.Workers}"
+resource "aws_route53_record" "dev-dtr" {
    zone_id = "${aws_route53_zone.DnsZone.zone_id}"
-   name = "swarm-${count.index}"
+   name = "dev-dtr"
    type = "A"
    ttl = "60"
-   records = ["${element(aws_instance.workers.*.public_ip, count.index)}"]
+   records = ["${aws_instance.dev-ucp.public_ip}"]
 }
-
-resource "aws_route53_record" "dtr1" {
-  zone_id = "${aws_route53_zone.DnsZone.zone_id}"
-  name = "dtr1"
-  type = "CNAME"
-  ttl = "60"
-  records = ["swarm-0"]
+resource "aws_route53_record" "dev-worker" {
+   zone_id = "${aws_route53_zone.DnsZone.zone_id}"
+   name = "dev-worker"
+   type = "A"
+   ttl = "60"
+   records = ["${aws_instance.dev-worker.public_ip}"]
+}
+resource "aws_route53_record" "prod-ucp" {
+   zone_id = "${aws_route53_zone.DnsZone.zone_id}"
+   name = "prod-ucp"
+   type = "A"
+   ttl = "60"
+   records = ["${aws_instance.prod-ucp.public_ip}"]
+}
+resource "aws_route53_record" "prod-dtr" {
+   zone_id = "${aws_route53_zone.DnsZone.zone_id}"
+   name = "prod-dtr"
+   type = "A"
+   ttl = "60"
+   records = ["${aws_instance.prod-ucp.public_ip}"]
+}
+resource "aws_route53_record" "prod-worker" {
+   zone_id = "${aws_route53_zone.DnsZone.zone_id}"
+   name = "prod-worker"
+   type = "A"
+   ttl = "60"
+   records = ["${aws_instance.prod-worker.public_ip}"]
 }
 
 resource "aws_security_group" "Public" {
@@ -187,6 +205,12 @@ resource "aws_security_group" "Public" {
     cidr_blocks = ["0.0.0.0/0"]
   }
   ingress {
+    from_port   = "4443"
+    to_port     = "4443"
+    protocol    = "TCP"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  ingress {
     from_port = "1"
     to_port = "65535"
     protocol = "TCP"
@@ -200,8 +224,7 @@ resource "aws_security_group" "Public" {
   }
 }
 
-resource "aws_instance" "managers" {
-  count = "${var.Managers}"
+resource "aws_instance" "dev-ucp" {
   ami = "${lookup(var.CentOS7AMI, var.region)}"
   instance_type = "t3.xlarge"
   associate_public_ip_address = "true"
@@ -209,8 +232,8 @@ resource "aws_instance" "managers" {
   vpc_security_group_ids = ["${aws_security_group.Public.id}"]
   key_name = "${aws_key_pair.conoa-sshkey.id}"
   tags {
-    Role = "Manager"
-    Name = "manager-${count.index}"
+    Role = "dev-ucp"
+    Name = "dev-ucp"
   }
   root_block_device {
     volume_size = "100"
@@ -225,23 +248,15 @@ HEREDOC
     private_key = "${file("./rsa_conoa")}"
     agent = false
   }
-  provisioner "file" {
-    source = "provisioning.sh"
-    destination = "/home/centos/provisioning.sh"
-  }
   provisioner "remote-exec" {
     inline = [
-      "sudo hostnamectl set-hostname manager-${count.index}",
-      "chmod +x provisioning.sh",
-      "sudo /home/centos/provisioning.sh",
-      "sudo docker swarm init"
+      "sudo hostnamectl set-hostname ucp-dev"
     ]
   }
 }
 
-resource "aws_instance" "workers" {
-  count = "${var.Workers}"
-  depends_on = ["aws_instance.managers"]
+resource "aws_instance" "dev-worker" {
+  depends_on = ["aws_instance.dev-ucp"]
   ami = "${lookup(var.CentOS7AMI, var.region)}"
   instance_type = "t3.large"
   associate_public_ip_address = "true"
@@ -249,8 +264,8 @@ resource "aws_instance" "workers" {
   vpc_security_group_ids = ["${aws_security_group.Public.id}"]
   key_name = "${aws_key_pair.conoa-sshkey.id}"
   tags {
-    Name = "worker-${count.index}"
-    Role = "worker"
+    Name = "dev-worker"
+    Role = "dev-worker"
   }
   root_block_device {
     volume_size = "100"
@@ -266,16 +281,73 @@ HEREDOC
     private_key = "${file("./rsa_conoa")}"
     agent = false
   }
-  provisioner "file" {
-    source = "provisioning.sh"
-    destination = "/home/centos/provisioning.sh"
+  provisioner "remote-exec" {
+    inline = [
+      "sudo hostnamectl set-hostname dev-worker"
+    ]
+  }
+}
+
+resource "aws_instance" "prod-ucp" {
+  ami = "${lookup(var.CentOS7AMI, var.region)}"
+  instance_type = "t3.xlarge"
+  associate_public_ip_address = "true"
+  subnet_id = "${aws_subnet.public-cidr.id}"
+  vpc_security_group_ids = ["${aws_security_group.Public.id}"]
+  key_name = "${aws_key_pair.conoa-sshkey.id}"
+  tags {
+    Role = "prod-ucp"
+    Name = "prod-ucp"
+  }
+  root_block_device {
+    volume_size = "100"
+    delete_on_termination = "true"
+  }
+  user_data = <<HEREDOC
+  #!/bin/bash
+  yum update -y -q
+HEREDOC
+  connection {
+    user = "centos"
+    private_key = "${file("./rsa_conoa")}"
+    agent = false
   }
   provisioner "remote-exec" {
     inline = [
-      "sudo hostnamectl set-hostname swarm-${count.index}",
-      "chmod +x provisioning.sh",
-      "sudo /home/centos/provisioning.sh",
-      "sudo docker swarm join ${aws_instance.managers.0.private_ip}:2377 --token $(docker -H ${aws_instance.managers.0.private_ip} swarm join-token -q manager)"
+      "sudo hostnamectl set-hostname ucp-dev"
+    ]
+  }
+}
+
+resource "aws_instance" "prod-worker" {
+  depends_on = ["aws_instance.prod-ucp"]
+  ami = "${lookup(var.CentOS7AMI, var.region)}"
+  instance_type = "t3.large"
+  associate_public_ip_address = "true"
+  subnet_id = "${aws_subnet.public-cidr.id}"
+  vpc_security_group_ids = ["${aws_security_group.Public.id}"]
+  key_name = "${aws_key_pair.conoa-sshkey.id}"
+  tags {
+    Name = "prod-worker"
+    Role = "prod-worker"
+  }
+  root_block_device {
+    volume_size = "100"
+    delete_on_termination = "true"
+  }
+  user_data = <<HEREDOC
+  #!/bin/bash
+  yum update -y -q
+HEREDOC
+  connection {
+    type = "ssh"
+    user = "centos"
+    private_key = "${file("./rsa_conoa")}"
+    agent = false
+  }
+  provisioner "remote-exec" {
+    inline = [
+      "sudo hostnamectl set-hostname dev-worker"
     ]
   }
 }
