@@ -52,7 +52,7 @@ docker run -it --rm docker/dtr:latest install \
   --ucp-password changeme \
   --ucp-username admin \
   --ucp-url https://dev-ucp.cicd.conoa.se \
-  --ucp-node dev-worker \
+  --ucp-node dev-ucp \
   --replica-https-port 4443 \
   --replica-http-port 81 \
   --dtr-external-url https://dev-dtr.cicd.conoa.se:4443
@@ -78,7 +78,7 @@ docker run -it --rm docker/dtr:latest install \
   --ucp-password changeme \
   --ucp-username admin \
   --ucp-url https://prod-ucp.cicd.conoa.se \
-  --ucp-node prod-worker \
+  --ucp-node prod-ucp \
   --replica-https-port 4443 \
   --replica-http-port 81 \
   --dtr-external-url https://prod-dtr.cicd.conoa.se:4443
@@ -87,7 +87,7 @@ docker run -it --rm docker/dtr:latest install \
 <a name="step4"><h3>Lägg upp licensen i dev + prod</h3></a>
 Görs i GUI
 
-<a name="step5">Sätt upp CA-trust på alla 4 maskiner</h3></a>
+<a name="step5">Sätt upp CA-trust i dev </h3></a>
 ```
 export DTR_FQDN="dev-dtr.cicd.conoa.se:4443"
 sudo curl -k \
