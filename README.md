@@ -19,8 +19,16 @@ This repo contains setup scripts for Conoa CICD workshop. <br>
   * Om sec-scan har mer än 1 critical: promota image till admin/vulnerable-app
   * Om sec-scan har 0 crit: promota image (mirror) till prod-dtr/admin/app
 
-## Install docker
+### Install docker
 <a name="headers"/>
+```
+export DOCKERURL="https://storebits.docker.com/ee/centos/sub-7019e3a8-f1cf-434c-b454-952669b3e8b2"
+echo "$DOCKERURL/centos" > /etc/yum/vars/dockerurl
+yum install -y yum-utils device-mapper-persistent-data lvm2
+yum-config-manager --add-repo "$DOCKERURL/centos/docker-ee.repo"
+yum-config-manager --enable docker-ee-stable-17.06
+yum -y -q install docker-ee
+```
 
 ## Todo
 - [x] Terraform a docker swarm in AWS
