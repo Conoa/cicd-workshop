@@ -4,8 +4,8 @@
 This repo contains setup scripts for Conoa CICD workshop. <br>
 
 ## Workshop workflow
-1. [Install docker](#step1)
-2. [Install UCP + DTR på en maskin + 1 worker i dev]
+1. Install docker
+2. Install UCP + DTR på en maskin + 1 worker i dev
 3. Install UCP + DTR på en maskin + 1 worker i prod
 4. Lägg upp license i dev + prod
 5. Sätt upp CA-trust på alla 4 maskiner
@@ -20,7 +20,7 @@ This repo contains setup scripts for Conoa CICD workshop. <br>
   * Om sec-scan har 0 crit: promota image (mirror) till prod-dtr/admin/app
 13. Manuell deploy av image till prod.
 
-<a name="step1"><h3>Install docker</h3></a>
+## Installera docker
 ```
 export DOCKERURL="https://storebits.docker.com/ee/centos/sub-7019e3a8-f1cf-434c-b454-952669b3e8b2"
 echo "$DOCKERURL/centos" | sudo tee /etc/yum/vars/dockerurl
@@ -32,7 +32,7 @@ sudo systemctl start docker
 sudo systemctl enable docker
 sudo usermod -a -G docker centos
 ```
-<a name="step2"><h3>Install UCP på en maskin + 1 worker i dev]</h3></a>
+## Installera UCP i dev
 ```
 docker container run -it --rm --name=ucp -v /var/run/docker.sock:/var/run/docker.sock docker/ucp:latest install \
   --admin-username admin  \
@@ -45,7 +45,7 @@ docker container run -it --rm --name=ucp -v /var/run/docker.sock:/var/run/docker
   --disable-usage
 docker swarm join-token worker
 ```
-### Installera DTR
+### Installera DTR i dev
 ```
 docker run -it --rm docker/dtr:latest install \
   --ucp-insecure-tls \
@@ -57,8 +57,7 @@ docker run -it --rm docker/dtr:latest install \
   --replica-http-port 81 \
   --dtr-external-url https://dev-dtr.cicd.conoa.se:4443
 ```
-
-<a name="step3"><h3>Install UCP på en maskin + 1 worker i prod</h3></a>
+## Installera UCP i prod
 ```
 docker container run -it --rm --name=ucp -v /var/run/docker.sock:/var/run/docker.sock docker/ucp:latest install \
   --admin-username admin  \
@@ -71,7 +70,7 @@ docker container run -it --rm --name=ucp -v /var/run/docker.sock:/var/run/docker
   --disable-usage
 docker swarm join-token worker
 ```
-### Installera DTR
+### Installera DTR i prod
 ```
 docker run -it --rm docker/dtr:latest install \
   --ucp-insecure-tls \
@@ -84,16 +83,129 @@ docker run -it --rm docker/dtr:latest install \
   --dtr-external-url https://prod-dtr.cicd.conoa.se:4443
 ```
 
-<a name="step4"><h3>Lägg upp licensen i dev + prod</h3></a>
+## Installera licenser
 Görs i GUI
 
-<a name="step5">Sätt upp CA-trust i dev </h3></a>
+## Sätt upp layer 7 routing
+admin -> admin settings -> layer 7 routing -> enable
+
+## Sätt upp CA-trust i dev
 ```
-export DTR_FQDN="dev-dtr.cicd.conoa.se:4443"
+export DTR_FQDN="dev-dtr.cicd.conoa.se"
 sudo curl -k \
   https://${DTR_FQDN}:4443/ca \
   -o /etc/pki/ca-trust/source/anchors/${DTR_FQDN}:4443.crt
+sudo update-ca-trust
+sudo systemctl restart docker
+sudo docker login -u admin ${DTR_FQDN}:4443
 ```
+
+## Sätt upp CA-trust i prod
+```
+export DTR_FQDN="prod-dtr.cicd.conoa.se"
+sudo curl -k \
+  https://${DTR_FQDN}:4443/ca \
+  -o /etc/pki/ca-trust/source/anchors/${DTR_FQDN}:4443.crt
+sudo update-ca-trust
+sudo systemctl restart docker
+sudo docker login -u admin ${DTR_FQDN}:4443
+```
+
+## Skapa ett repo för jenkins image
+http://dev-dtr.cicd.conoa.se:4443 -> new repo -> admin / jenkins
+
+## Bygg jenkins
+```
+mkdir -p jenkins/build
+cd jenkins
+export UCP_FQDN="dev-ucp.cicd.conoa.se"
+export DTR_FQDN="dev-dtr.cicd.conoa.se"
+sudo curl -k \
+  https://${DTR_FQDN}:4443/ca \
+  -o /etc/pki/ca-trust/source/anchors/${DTR_FQDN}:4443.crt
+sudo update-ca-trust
+AUTHTOKEN=$(curl -sk -d '{"username":"admin","password":"changeme"}' https://${UCP_FQDN}/auth/login | cut -d\" -f4)
+curl -k -H "Authorization: Bearer $AUTHTOKEN" -s https://${UCP_FQDN}/api/clientbundle -o bundle.zip && unzip -o bundle.zip
+source env.sh
+docker login -u admin -p changeme https://${DTR_FQDN}:4443
+```
+Bygg jenkins i swarm
+```
+cd build
+cat << EOT > Dockerfile
+FROM jenkins/jenkins:lts
+USER root
+ENV JAVA_OPTS "-Djenkins.install.runSetupWizard=false"
+RUN DEBIAN_FRONTEND=non-interactive apt-get update && apt-get install -y \
+    apt-transport-https \
+    ca-certificates \
+    curl \
+    gnupg2 \
+    software-properties-common && \
+  curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add - && \
+  add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian stretch stable" && \
+  apt-get update && \
+  apt-get install -y docker-ce && \
+  rm -rf /var/lib/apt/*
+USER jenkins
+RUN touch /var/jenkins_home/.last_exec_version && \
+    echo 2.0 > /var/jenkins_home/upgraded && \
+    mkdir /var/jenkins_home/jobs/ && \
+    /usr/local/bin/install-plugins.sh generic-webhook-trigger github
+EOT
+docker build -t ${DTR_FQDN}:4443/admin/jenkins:latest .
+cd ..
+docker image push ${DTR_FQDN}:4443/admin/jenkins:latest
+```
+
+## Sätt upp jenkins som en service
+Starta en jenkins container mha docker-compose.yml
+```
+cat << EOT > docker-compose.yml
+version: '3.5'
+services:
+  jenkins:
+    image: dev-dtr.cicd.conoa.se:4443/admin/jenkins
+    deploy:
+      placement:
+        constraints: [node.role == worker]
+      labels:
+        com.docker.lb.hosts: dev-jenkins.cicd.conoa.se
+        com.docker.lb.port: 8080
+        com.docker.network: jenkins-network
+    networks:
+      - jenkins-network
+networks:
+  jenkins-network:
+    driver: overlay
+EOT
+docker stack deploy -c docker-compose.yml jenkins
+curl -I -H "host: dev-jenkins.cicd.conoa.se" http://dev-jenkins.cicd.conoa.se
+```
+
+## Konfigurera ett build jobb i Jenkins
+1. Skapa nytt item
+2. Name: Byggjobb
+3. Typ: Freestyle
+4. 
+
+## Skapa DTR repo i både dev och prod för vår kommande app
+<a name="step10"><h3>Skapa ett admin/app repo i dev och ett admin/app repo i prod</h3></a>
+http://dev-dtr.cicd.conoa.se:4443 -> new repo -> admin / app
+http://prod-dtr.cicd.conoa.se:4443 -> new repo -> admin / app
+
+## Sätt upp ett gitrepo
+1. https://github.com/docker-training/dops-final-project -> Fork
+2. Gå in i det forkade repot
+3. Settings (https://github.com/rjes/dops-final-project/settings)
+4. Webhooks (https://github.com/rjes/dops-final-project/settings/hooks)
+5. 
+
+
+<a name="step11"><h3>Sätt upp ett github-repo med webhook mot vår test-dtr</h3></a>
+<a name="step12"><h3>Skapa ett jenkins jobb som ska bygga vår test applikation, samt pusha till dev-DTR
+<a name="step12"><h3>När en ny tag pushas in i dev-DTR så ska en säkerhetscan startas
+<a name="step12"><h3>
 
 
 
