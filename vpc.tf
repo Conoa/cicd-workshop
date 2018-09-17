@@ -250,7 +250,7 @@ HEREDOC
   }
   provisioner "remote-exec" {
     inline = [
-      "sudo hostnamectl set-hostname ucp-dev"
+      "sudo hostnamectl set-hostname dev-ucp"
     ]
   }
 }
@@ -314,7 +314,7 @@ HEREDOC
   }
   provisioner "remote-exec" {
     inline = [
-      "sudo hostnamectl set-hostname ucp-dev"
+      "sudo hostnamectl set-hostname prod-ucp"
     ]
   }
 }
@@ -347,7 +347,7 @@ HEREDOC
   }
   provisioner "remote-exec" {
     inline = [
-      "sudo hostnamectl set-hostname dev-worker"
+      "sudo hostnamectl set-hostname prod-worker"
     ]
   }
 }
