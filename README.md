@@ -199,13 +199,21 @@ http://prod-dtr.cicd.conoa.se:4443 -> new repo -> admin / app
 1. Typ: Freestyle
 1. OK
 1. Ta bort gamla byggen
-   1.  Max byggen: 0
+   1.  Max byggen: 1
 1. SCM
    1. Git
-   1. Repo URL: git@github.com:rjes/dops-final-project.git
+   1. Repo URL: https://github.com/rjes/dops-final-project.git
 1. Build triggers
    1. Generic webhook trigger
-   1. 
+   1. token: 3Hkv0zarwg2YtS8i9v2v
+   1. Cause: RepoBuild
+1. Build
+   1. Add build step -> execute shell
+   1. ls -l 
+1. Konfigurera github
+   1. Webhook URL: https://dev-jenkins.cicd.conoa.se/generic-webhook-trigger/invoke?token=3Hkv0zarwg2YtS8i9v2v
+   1. Disable SSL verification
+   1. Push event
  
 
 
