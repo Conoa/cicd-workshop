@@ -31,15 +31,22 @@ sudo yum -y -q install docker-ee unzip
 sudo systemctl start docker
 sudo systemctl enable docker
 sudo usermod -a -G docker centos
+cat << EOT >> .bashrc
+export DOMAIN=cicd.k8s.se"
+EOT
 ```
 ## Installera UCP i dev
 ```
+cat << EOT >> .bashrc
+export UCP_FQDN=dev-ucp.${DOMAIN}"
+export DTR_FQDN=dev-dtr.${DOMAIN}"
+EOT
 docker container run -it --rm --name=ucp -v /var/run/docker.sock:/var/run/docker.sock docker/ucp:latest install \
   --admin-username admin  \
   --admin-password changeme \
-  --san dev-ucp.cicd.conoa.se \
-  --san dev-worker.cicd.conoa.se \
-  --san dev-dtr.cicd.conoa.se \
+  --san ${UCP_FQDN} \
+  --san ${DTR_FQDN} \
+  --san dev-worker.${DOMAIN} \
   --controller-port 443 \
   --disable-tracking \
   --disable-usage
@@ -51,19 +58,23 @@ docker run -it --rm docker/dtr:latest install \
   --ucp-insecure-tls \
   --ucp-password changeme \
   --ucp-username admin \
-  --ucp-url https://dev-ucp.cicd.conoa.se \
+  --ucp-url https://${DTR_FQDN} \
   --ucp-node dev-ucp \
   --replica-https-port 4443 \
   --replica-http-port 81 \
-  --dtr-external-url https://dev-dtr.cicd.conoa.se:4443
+  --dtr-external-url https://${DTR_FQDN}:4443
 ```
 ## Installera UCP i prod
 ```
+cat << EOT >> .bashrc
+export UCP_FQDN=prod-ucp.${DOMAIN}"
+export DTR_FQDN=prod-dtr.${DOMAIN}"
+EOT
 docker container run -it --rm --name=ucp -v /var/run/docker.sock:/var/run/docker.sock docker/ucp:latest install \
   --admin-username admin  \
   --admin-password changeme \
-  --san prod-ucp.cicd.conoa.se \
-  --san prod-dtr.cicd.conoa.se \
+  --san ${UCP_FQDN} \
+  --san ${DTR_FQDN} \
   --san prod-worker.cicd.conoa.se \
   --controller-port 443 \
   --disable-tracking \
@@ -76,11 +87,11 @@ docker run -it --rm docker/dtr:latest install \
   --ucp-insecure-tls \
   --ucp-password changeme \
   --ucp-username admin \
-  --ucp-url https://prod-ucp.cicd.conoa.se \
+  --ucp-url https://${DTR_FQDN} \
   --ucp-node prod-ucp \
   --replica-https-port 4443 \
   --replica-http-port 81 \
-  --dtr-external-url https://prod-dtr.cicd.conoa.se:4443
+  --dtr-external-url https://${DTR_FQDN}:4443
 ```
 
 ## Installera licenser
