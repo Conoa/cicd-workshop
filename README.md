@@ -32,21 +32,21 @@ sudo systemctl start docker
 sudo systemctl enable docker
 sudo usermod -a -G docker centos
 cat << EOT >> .bashrc
-export DOMAIN=cicd.k8s.se"
+export DOMAIN="cicd.k8s.se"
+export ENV=${HOSTNAME%-*}
+export UCP_FQDN="${ENV}-ucp.\${DOMAIN}"
+export DTR_FQDN="${ENV}-dtr.\${DOMAIN}"
 EOT
+# exit
 ```
 ## Installera UCP i dev
 ```
-cat << EOT >> .bashrc
-export UCP_FQDN=dev-ucp.${DOMAIN}"
-export DTR_FQDN=dev-dtr.${DOMAIN}"
-EOT
 docker container run -it --rm --name=ucp -v /var/run/docker.sock:/var/run/docker.sock docker/ucp:latest install \
   --admin-username admin  \
   --admin-password changeme \
   --san ${UCP_FQDN} \
   --san ${DTR_FQDN} \
-  --san dev-worker.${DOMAIN} \
+  --san ${ENV}-worker.${DOMAIN} \
   --controller-port 443 \
   --disable-tracking \
   --disable-usage
@@ -59,23 +59,19 @@ docker run -it --rm docker/dtr:latest install \
   --ucp-password changeme \
   --ucp-username admin \
   --ucp-url https://${DTR_FQDN} \
-  --ucp-node dev-ucp \
+  --ucp-node ${ENV}-ucp \
   --replica-https-port 4443 \
   --replica-http-port 81 \
   --dtr-external-url https://${DTR_FQDN}:4443
 ```
 ## Installera UCP i prod
 ```
-cat << EOT >> .bashrc
-export UCP_FQDN=prod-ucp.${DOMAIN}"
-export DTR_FQDN=prod-dtr.${DOMAIN}"
-EOT
 docker container run -it --rm --name=ucp -v /var/run/docker.sock:/var/run/docker.sock docker/ucp:latest install \
   --admin-username admin  \
   --admin-password changeme \
   --san ${UCP_FQDN} \
   --san ${DTR_FQDN} \
-  --san prod-worker.cicd.conoa.se \
+  --san ${ENV}-worker.${DOMAIN} \
   --controller-port 443 \
   --disable-tracking \
   --disable-usage
@@ -88,7 +84,7 @@ docker run -it --rm docker/dtr:latest install \
   --ucp-password changeme \
   --ucp-username admin \
   --ucp-url https://${DTR_FQDN} \
-  --ucp-node prod-ucp \
+  --ucp-node ${ENV}-ucp \
   --replica-https-port 4443 \
   --replica-http-port 81 \
   --dtr-external-url https://${DTR_FQDN}:4443
