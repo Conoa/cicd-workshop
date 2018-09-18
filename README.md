@@ -116,8 +116,9 @@ sudo systemctl restart docker
 sudo docker login -u admin ${DTR_FQDN}:4443
 ```
 
-## Skapa ett repo för jenkins image
-http://dev-dtr.cicd.conoa.se:4443 -> new repo -> admin / jenkins
+## Skapa ett repo för jenkins image och ladda ner security database
+1. http://dev-dtr.cicd.conoa.se:4443 -> new repo -> admin / jenkins
+1. system -> security -> enable scaning + sync database
 
 ## Bygg jenkins
 ```
@@ -223,7 +224,7 @@ http://prod-dtr.cicd.conoa.se:4443 -> new repo -> admin / app
       1. ```
          test -z ${repoName_0} && exit 1
          export UCP_FQDN="dev-ucp.cicd.k8s.se"
-         export DiTR_FQDN="dev-dtr.cicd.k8s.se:4443"
+         export DTR_FQDN="dev-dtr.cicd.k8s.se:4443"
          export ImageName="app"
          AUTHTOKEN=$(curl -sk -d '{"username":"admin","password":"changeme"}' https://${UCP_FQDN}/auth/login | cut -d\" -f4)
          curl -k -H "Authorization: Bearer $AUTHTOKEN" -s https://${UCP_FQDN}/api/clientbundle -o bundle.zip && unzip -o bundle.zip
@@ -235,8 +236,8 @@ http://prod-dtr.cicd.conoa.se:4443 -> new repo -> admin / app
          docker build -t ${repoName_0}:${BUILD_ID} .
          docker tag ${repoName_0}:${BUILD_ID} ${DTR_FQDN}/admin/${repoName_0}:${BUILD_ID}
          docker push ${DTR_FQDN}/admin/${repoName_0}:${BUILD_ID}
-         docker tag ${repoName_0}:${BUILD_ID} ${DTR_FQDN}/admin/${repoName_0}:latest
-         docker push ${DTR_FQDN}/admin/${repoName_0}:latest
+         #docker tag ${repoName_0}:${BUILD_ID} ${DTR_FQDN}/admin/${repoName_0}:latest
+         #docker push ${DTR_FQDN}/admin/${repoName_0}:latest
          ```
       1. Save or apply
 
@@ -247,33 +248,57 @@ http://prod-dtr.cicd.conoa.se:4443 -> new repo -> admin / app
    1. Webhook URL: https://dev-jenkins.cicd.conoa.se/generic-webhook-trigger/invoke?token=3Hkv0zarwg2YtS8i9v2v
    1. Disable SSL verification
    1. Push event
+
  
 ## Kontrollera byggjobbet i Jenkins
 1. Gå in i https://dev-jenkins.cicd.conoa.se/
 1. Gå in i det aktuella bygget och klicka på "Console output"
 
-## Se till så Jenkins bygger på riktigt
-1. Gå in byggjobbet
-1. Klicka på configure
-1. Ersätt build commands med:
-   ```
-   export UCP_FQDN=dev-ucp.cicd.k8s.se
-   export DTR_FQDN=dev-dtr.cicd.k8s.se
-   AUTHTOKEN=$(curl -sk -d '{"username":"admin","password":"changeme"}' https://${UCP_FQDN}/auth/login | cut -d\" -f4)
-   curl -k -H "Authorization: Bearer $AUTHTOKEN" -s https://${UCP_FQDN}/api/clientbundle -o bundle.zip && unzip bundle.zip
-   export DOCKER_TLS_VERIFY=1
-   export COMPOSE_TLS_VERSION=TLSv1_2
-   export DOCKER_CERT_PATH=$PWD
-   export DOCKER_HOST=tcp://${UCP_FQDN}:443
-   
-   docker login -u admin -p changeme https://${DTR_FQDN}
-   docker build -t ${ImageName}:${BUILD_ID} .
-   docker tag ${ImageName}:${BUILD_ID} ${DTR_FQDN}/admin/${ImageName}:${BUILD_ID}
-   docker push ${DTR_FQDN}/admin/${ImageName}:${BUILD_ID}
-   docker tag ${ImageName}:${BUILD_ID} ${DTR_FQDN}/admin/${ImageName}:latest
-   docker push ${DTR_FQDN}/admin/${ImageName}:latest
-   ```
-1. 
+## Kontrollera så imagen har skickats upp till DTR
+1. Gå in på https://dev-dtr.cicd.k8s.se:4443
+1. Klicka på repositories -> admin/app -> images
+
+## Enable security scans för vårt app repo och promotions
+1. repositories -> admin/app -> settings -> scan on push
+1. save
+1. repositories -> admin/app -> mirrors
+   1. New mirror
+   1. Registry URL: prod-dtr.cicd.k8s.se:4443
+   1. Advanced -> add CA from `curl https://${DTR_FQDN}:4443/ca`
+   1. Triggers
+      1. Critical vulnerabilities: less than or equals 0
+      1. Mirrored image's tag: %n
+      1. Save and apply
+1. Gå in i github och pusha en ny webhook
+1. Gå tillbaka in i dev-dtr och visa att imagen scanas och att imagen har critical vulns och inte pushas till prod-dtr.
+1. Ändra triggers för mirror så critical vulns är mindre än 20
+1. Kör en webhook igen
+
+## Webhook från prod-dtr för att produktionssätta applikationen
+1. Logga in i prod-dtr
+1. repositories -> admin/app -> webhooks
+   1. Notifications to Receive: tag pushed to repo
+   1. http://dev-jenkins.cicd.conoa.se/generic-webhook-trigger/invoke?token=PKosy4fD6YCyzBHktQJw
+1. Logga in i http://dev-jenkins.cicd.k8s.se/
+   1. Nytt jobb
+      1. Name: DeployJob
+      1. Type: Freestyle
+   1. Generic Webhook Trigger
+      1. Token: Kosy4fD6YCyzBHktQJw
+   1. Build (shell commands)
+      ```
+         export UCP_FQDN="dev-ucp.cicd.k8s.se"
+         export DTR_FQDN="dev-dtr.cicd.k8s.se:4443"
+         AUTHTOKEN=$(curl -sk -d '{"username":"admin","password":"changeme"}' https://${UCP_FQDN}/auth/login | cut -d\" -f4)
+         curl -k -H "Authorization: Bearer $AUTHTOKEN" -s https://${UCP_FQDN}/api/clientbundle -o bundle.zip && unzip -o bundle.zip
+         export DOCKER_TLS_VERIFY=1 
+         export COMPOSE_TLS_VERSION=TLSv1_2
+         export DOCKER_CERT_PATH=$PWD
+         export DOCKER_HOST=tcp://${UCP_FQDN}:443 
+         docker login -u admin -p changeme https://${DTR_FQDN} && docker stack deploy -c docker-compose.yml app
+      ```
+   1. Apply and save
+
 
 <a name="step11"><h3>Sätt upp ett github-repo med webhook mot vår test-dtr</h3></a>
 <a name="step12"><h3>Skapa ett jenkins jobb som ska bygga vår test applikation, samt pusha till dev-DTR
