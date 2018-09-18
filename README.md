@@ -34,8 +34,8 @@ sudo usermod -a -G docker centos
 cat << EOT >> .bashrc
 export DOMAIN="cicd.k8s.se"
 export ENV=${HOSTNAME%-*}
-export UCP_FQDN="${ENV}-ucp.\${DOMAIN}"
-export DTR_FQDN="${ENV}-dtr.\${DOMAIN}"
+export UCP_FQDN="\${ENV}-ucp.\${DOMAIN}"
+export DTR_FQDN="\${ENV}-dtr.\${DOMAIN}"
 EOT
 # exit
 ```
@@ -98,7 +98,6 @@ admin -> admin settings -> layer 7 routing -> enable
 
 ## Sätt upp CA-trust i dev
 ```
-export DTR_FQDN="dev-dtr.cicd.conoa.se"
 sudo curl -k \
   https://${DTR_FQDN}:4443/ca \
   -o /etc/pki/ca-trust/source/anchors/${DTR_FQDN}:4443.crt
@@ -109,7 +108,6 @@ sudo docker login -u admin ${DTR_FQDN}:4443
 
 ## Sätt upp CA-trust i prod
 ```
-export DTR_FQDN="prod-dtr.cicd.conoa.se"
 sudo curl -k \
   https://${DTR_FQDN}:4443/ca \
   -o /etc/pki/ca-trust/source/anchors/${DTR_FQDN}:4443.crt
@@ -196,33 +194,86 @@ http://prod-dtr.cicd.conoa.se:4443 -> new repo -> admin / app
 
 ## Forka dops-final-project
 1. https://github.com/docker-training/dops-final-project -> Fork
-1. Gå in i det forkade repot
-1. Settings (https://github.com/rjes/dops-final-project/settings)
-1. Webhooks (https://github.com/rjes/dops-final-project/settings/hooks)
+1. Gå in i det forkade repot och verifiera att allting "ser bra ut"
 
 ## Konfigurera ett build jobb i Jenkins
 1. Skapa nytt item
 1. Name: Byggjobb
 1. Typ: Freestyle
 1. OK
-1. Ta bort gamla byggen
-   1.  Max byggen: 1
-1. SCM
-   1. Git
-   1. Repo URL: https://github.com/rjes/dops-final-project.git
-1. Build triggers
-   1. Generic webhook trigger
-   1. token: 3Hkv0zarwg2YtS8i9v2v
-   1. Cause: RepoBuild
-1. Build
-   1. Add build step -> execute shell
-   1. ls -l 
+   1. Ta bort gamla byggen
+      1.  Max byggen: 1
+   1. SCM
+      1. Git
+      1. Repo URL: https://github.com/rjes/dops-final-project.git
+   1. Build triggers
+      1. Generic webhook trigger
+      1. Post content parameters
+         1. Variable: repoName
+         1. Expression: $.repository.name
+         1. Type: JSONPath
+         1. Value filter: [^a-z]
+      1. Request parameters
+         1. Request parameter: repoName
+         1. Value filter: [^a-z]
+      1. token: 3Hkv0zarwg2YtS8i9v2v
+      1. Cause: RepoBuild
+   1. Build
+      1. Add build step -> execute shell
+      1. ```
+         test -z ${repoName_0} && exit 1
+         export UCP_FQDN="dev-ucp.cicd.k8s.se"
+         export DiTR_FQDN="dev-dtr.cicd.k8s.se:4443"
+         export ImageName="app"
+         AUTHTOKEN=$(curl -sk -d '{"username":"admin","password":"changeme"}' https://${UCP_FQDN}/auth/login | cut -d\" -f4)
+         curl -k -H "Authorization: Bearer $AUTHTOKEN" -s https://${UCP_FQDN}/api/clientbundle -o bundle.zip && unzip -o bundle.zip
+         export DOCKER_TLS_VERIFY=1 
+         export COMPOSE_TLS_VERSION=TLSv1_2
+         export DOCKER_CERT_PATH=$PWD
+         export DOCKER_HOST=tcp://${UCP_FQDN}:443 
+         docker login -u admin -p changeme https://${DTR_FQDN}
+         docker build -t ${repoName_0}:${BUILD_ID} .
+         docker tag ${repoName_0}:${BUILD_ID} ${DTR_FQDN}/admin/${repoName_0}:${BUILD_ID}
+         docker push ${DTR_FQDN}/admin/${repoName_0}:${BUILD_ID}
+         docker tag ${repoName_0}:${BUILD_ID} ${DTR_FQDN}/admin/${repoName_0}:latest
+         docker push ${DTR_FQDN}/admin/${repoName_0}:latest
+         ```
+      1. Save or apply
+
+
+## Konfigurera git repot
 1. Konfigurera github
+   1. Settings (https://github.com/rjes/dops-final-project/settings)
    1. Webhook URL: https://dev-jenkins.cicd.conoa.se/generic-webhook-trigger/invoke?token=3Hkv0zarwg2YtS8i9v2v
    1. Disable SSL verification
    1. Push event
  
+## Kontrollera byggjobbet i Jenkins
+1. Gå in i https://dev-jenkins.cicd.conoa.se/
+1. Gå in i det aktuella bygget och klicka på "Console output"
 
+## Se till så Jenkins bygger på riktigt
+1. Gå in byggjobbet
+1. Klicka på configure
+1. Ersätt build commands med:
+   ```
+   export UCP_FQDN=dev-ucp.cicd.k8s.se
+   export DTR_FQDN=dev-dtr.cicd.k8s.se
+   AUTHTOKEN=$(curl -sk -d '{"username":"admin","password":"changeme"}' https://${UCP_FQDN}/auth/login | cut -d\" -f4)
+   curl -k -H "Authorization: Bearer $AUTHTOKEN" -s https://${UCP_FQDN}/api/clientbundle -o bundle.zip && unzip bundle.zip
+   export DOCKER_TLS_VERIFY=1
+   export COMPOSE_TLS_VERSION=TLSv1_2
+   export DOCKER_CERT_PATH=$PWD
+   export DOCKER_HOST=tcp://${UCP_FQDN}:443
+   
+   docker login -u admin -p changeme https://${DTR_FQDN}
+   docker build -t ${ImageName}:${BUILD_ID} .
+   docker tag ${ImageName}:${BUILD_ID} ${DTR_FQDN}/admin/${ImageName}:${BUILD_ID}
+   docker push ${DTR_FQDN}/admin/${ImageName}:${BUILD_ID}
+   docker tag ${ImageName}:${BUILD_ID} ${DTR_FQDN}/admin/${ImageName}:latest
+   docker push ${DTR_FQDN}/admin/${ImageName}:latest
+   ```
+1. 
 
 <a name="step11"><h3>Sätt upp ett github-repo med webhook mot vår test-dtr</h3></a>
 <a name="step12"><h3>Skapa ett jenkins jobb som ska bygga vår test applikation, samt pusha till dev-DTR
