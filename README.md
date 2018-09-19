@@ -262,7 +262,7 @@ När en image inte har några critical vulnerabilities så promotas imagen till 
 1. repositories -> admin/app -> settings -> scan on push
 1. save
 1. skapa repo admin/app-qa
-1. repo -> admin/app -> promotions -> new -> app-qa
+1. Sätt upp en promotion i app repot mot app-qa
    1. Critical Vulnerabilities: Less or equal 0
    1. Add
    1. Target repo: admin/app-qa
