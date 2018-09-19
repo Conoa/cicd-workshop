@@ -120,16 +120,7 @@ sudo docker login -u admin ${DTR_FQDN}:4443
 1. http://dev-dtr.cicd.conoa.se:4443 -> new repo -> admin / jenkins
 1. system -> security -> enable scaning + sync database
 
-## Bygg jenkins
-```
-mkdir -p jenkins/build
-cd jenkins
-AUTHTOKEN=$(curl -sk -d '{"username":"admin","password":"changeme"}' https://${UCP_FQDN}/auth/login | cut -d\" -f4)
-curl -k -H "Authorization: Bearer $AUTHTOKEN" -s https://${UCP_FQDN}/api/clientbundle -o bundle.zip && unzip -o bundle.zip
-source env.sh
-docker login -u admin -p changeme https://${DTR_FQDN}:4443
-```
-Bygg jenkins i swarm
+## Bygg jenkins i swarm
 ```
 cd build
 cat << EOT > Dockerfile
