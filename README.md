@@ -208,14 +208,14 @@ http://prod-dtr.cicd.conoa.se:4443 -> new repo -> admin / app
    1. Build triggers
       1. Generic webhook trigger
       1. Request parameters
-         1. Request parameter: repoName
-         1. Value filter: [^a-z]
+         1. Request parameter: `repoName`
+         1. Value filter: `Empty/tomt`
       1. token: 3Hkv0zarwg2YtS8i9v2v
       1. Cause: RepoBuild
    1. Build
       1. Add build step -> execute shell
       1. ```
-         imageName=${repoName}
+         imageName=${repoName_0}
          test -z ${imageName} && exit 1
          export UCP_FQDN="dev-ucp.cicd.k8s.se"
          export DTR_FQDN="dev-dtr.cicd.k8s.se:4443"
@@ -226,7 +226,7 @@ http://prod-dtr.cicd.conoa.se:4443 -> new repo -> admin / app
          export COMPOSE_TLS_VERSION=TLSv1_2
          export DOCKER_CERT_PATH=$PWD
          export DOCKER_HOST=tcp://${UCP_FQDN}:443 
-         docker login -u admin -p changeme https://${DTR_FQDN}
+         docker login -u admin -p changeme https://${DTR_FQDN}:4443
          docker build -t ${imageName}:${BUILD_ID} .
          docker tag ${imageName}:${BUILD_ID} ${DTR_FQDN}/admin/${imageName}:${BUILD_ID}
          docker push ${DTR_FQDN}/admin/${imageName}:${BUILD_ID}
@@ -259,29 +259,32 @@ När en image inte har några critical vulnerabilities så promotas imagen till 
 1. skapa repo admin/app-qa
 1. repo -> admin/app -> promotions -> new -> app-qa
    1. Critical Vulnerabilities: Less or equal 0
+   1. Add
    1. Target repo: admin/app-qa
    1. tag-name: qa-%n
    1. Save and apply
 1. Trigga en webhook från github
-1. Visa att vi inte får någon image i app-qa eller att ingen promotion har körts i app repot
+1. Det kommer ta c.a. 4 minuter att scana vår build.
+1. Visa att vi inte får någon image i app-qa samt att ingen promotion har körts i app repot
+
+## Promotion från QA till prod DTR
 1. Gå in och ändra Critical Vulnerabilities: Less or equal till 20
 1. Trigga en ny webhook från github
-1. Se att den hamnar i promotions
-
-## Manuell promotion från QA till prod DTR
+1. Verifiera att den senaste builden hamnar i app-qa repot
 1. Skapa ett nytt repo som används för att skeppa images mellan dev och prod.
    1. dev-dtr -> new repo -> admin/app-mirroring
    1. Sätt upp en ny mirror
       1. Registry URL: https prod-dtr.cicd.k8s.se:4443
       1. Advanced -> add CA from `curl https://${DTR_FQDN}:4443/ca`
+      1. Repo: admin/app
       1. Save and apply
-1. Trigga en webhook från GH
-1. Klicka igenom repon i dev-DTR för att visa att imagen som innehåller vulns inte promotas till app-mirroring
+      1. Vi lägger inte till några triggers/filters eftersom vi vill pusha allt när det väl har passerat QA
+      1. Vi låter name vara som det är
 1. Manuell promotion
    1. Klicka på `view details` på en image
    1. Klicka på `promote`
    1. Target repository: `admin / app-mirroring`
-   1. Tag name in target: `25`
+   1. Tag name in target: `Build nummer`
    1. Gå in i `app-mirroring` repot och visa att det finns en image där nu samt att mirrors har körts
    1. Logga in i prod-dtr och visa att imagen finns
 
