@@ -192,16 +192,17 @@ curl -I http://dev-jenkins.cicd.k8s.se
 ```
 
 ## Skapa DTR repo i både dev och prod för vår kommande app
-http://dev-dtr.cicd.conoa.se:4443 -> new repo -> admin / app
-http://prod-dtr.cicd.conoa.se:4443 -> new repo -> admin / app
+http://dev-dtr.cicd.k8s.se:4443 -> new repo -> admin / app
+http://prod-dtr.cicd.k8s.se:4443 -> new repo -> admin / app
 
-## Forka dops-final-project
+## Kodrepo för vårt bygge (om det behövs)
 1. https://github.com/docker-training/dops-final-project -> Fork
 1. Gå in i det forkade repot och verifiera att allting "ser bra ut"
 
 ## Konfigurera ett build jobb i Jenkins
+URL: http://dev-jenkins.cicd.k8s.se
 1. Skapa nytt item
-1. Name: Byggjobb
+1. Name: BuildJob
 1. Typ: Freestyle
 1. OK
    1. Ta bort gamla byggen
@@ -215,7 +216,7 @@ http://prod-dtr.cicd.conoa.se:4443 -> new repo -> admin / app
          1. Request parameter: `repoName`
          1. Value filter: `Empty/tomt`
       1. token: 3Hkv0zarwg2YtS8i9v2v
-      1. Cause: RepoBuild
+      1. Cause: BuildJob
    1. Build
       1. Add build step -> execute shell
       1. ```
