@@ -259,43 +259,84 @@ http://prod-dtr.cicd.conoa.se:4443 -> new repo -> admin / app
 1. Klicka på repositories -> admin/app -> images
 
 ## Enable security scans för vårt app repo och promotions
+När en image inte har några critical vulnerabilities så promotas imagen till app-qa
 1. repositories -> admin/app -> settings -> scan on push
 1. save
-1. repositories -> admin/app -> mirrors
-   1. New mirror
-   1. Registry URL: prod-dtr.cicd.k8s.se:4443
-   1. Advanced -> add CA from `curl https://${DTR_FQDN}:4443/ca`
-   1. Triggers
-      1. Critical vulnerabilities: less than or equals 0
-      1. Mirrored image's tag: %n
+1. skapa repo admin/app-qa
+1. repo -> admin/app -> promotions -> new -> app-qa
+   1. Critical Vulnerabilities: Less or equal 0
+   1. Target repo: admin/app-qa
+   1. tag-name: qa-%n
+   1. Save and apply
+1. Trigga en webhook från github
+1. Visa att vi inte får någon image i app-qa eller att ingen promotion har körts i app repot
+1. Gå in och ändra Critical Vulnerabilities: Less or equal till 20
+1. Trigga en ny webhook från github
+1. Se att den hamnar i promotions
+
+## Manuell promotion från QA till prod DTR
+1. Skapa ett nytt repo som används för att skeppa images mellan dev och prod.
+   1. dev-dtr -> new repo -> admin/app-mirroring
+   1. Sätt upp en ny mirror
+      1. Registry URL: https prod-dtr.cicd.k8s.se:4443
+      1. Advanced -> add CA from `curl https://${DTR_FQDN}:4443/ca`
       1. Save and apply
-1. Gå in i github och pusha en ny webhook
-1. Gå tillbaka in i dev-dtr och visa att imagen scanas och att imagen har critical vulns och inte pushas till prod-dtr.
-1. Ändra triggers för mirror så critical vulns är mindre än 20
-1. Kör en webhook igen
+1. Trigga en webhook från GH
+1. Klicka igenom repon i dev-DTR för att visa att imagen som innehåller vulns inte promotas till app-mirroring
+1. Manuell promotion
+   1. Klicka på `view details` på en image
+   1. Klicka på `promote`
+   1. Target repository: `admin / app-mirroring`
+   1. Tag name in target: `25`
+   1. Gå in i `app-mirroring` repot och visa att det finns en image där nu samt att mirrors har körts
+   1. Logga in i prod-dtr och visa att imagen finns
 
 ## Webhook från prod-dtr för att produktionssätta applikationen
 1. Logga in i prod-dtr
 1. repositories -> admin/app -> webhooks
    1. Notifications to Receive: tag pushed to repo
-   1. http://dev-jenkins.cicd.conoa.se/generic-webhook-trigger/invoke?token=PKosy4fD6YCyzBHktQJw
+   1. http://dev-jenkins.cicd.conoa.se/generic-webhook-trigger/invoke?token=PKosy4fD6YCyzBHktQJw&imageName=app
 1. Logga in i http://dev-jenkins.cicd.k8s.se/
    1. Nytt jobb
       1. Name: DeployJob
       1. Type: Freestyle
+   1. SCM
+      1. Git
+      1. Repo URL: https://github.com/rjes/dops-final-project.git
    1. Generic Webhook Trigger
-      1. Token: Kosy4fD6YCyzBHktQJw
+      1. Token: PKosy4fD6YCyzBHktQJw
+      1. Request parameters
+         1. Request parameter: repoName
+         1. Value filter: [^a-zA-Z0-9]
    1. Build (shell commands)
       ```
-         export UCP_FQDN="dev-ucp.cicd.k8s.se"
-         export DTR_FQDN="dev-dtr.cicd.k8s.se:4443"
-         AUTHTOKEN=$(curl -sk -d '{"username":"admin","password":"changeme"}' https://${UCP_FQDN}/auth/login | cut -d\" -f4)
-         curl -k -H "Authorization: Bearer $AUTHTOKEN" -s https://${UCP_FQDN}/api/clientbundle -o bundle.zip && unzip -o bundle.zip
-         export DOCKER_TLS_VERIFY=1 
-         export COMPOSE_TLS_VERSION=TLSv1_2
-         export DOCKER_CERT_PATH=$PWD
-         export DOCKER_HOST=tcp://${UCP_FQDN}:443 
-         docker login -u admin -p changeme https://${DTR_FQDN} && docker stack deploy -c docker-compose.yml app
+      test -z ${imageName_0} && exit 1
+      export UCP_FQDN="prod-ucp.cicd.k8s.se"
+      export DTR_FQDN="prod-dtr.cicd.k8s.se:4443"
+      AUTHTOKEN=$(curl -sk -d '{"username":"admin","password":"changeme"}' https://${UCP_FQDN}/auth/login | cut -d\" -f4)
+      curl -k -H "Authorization: Bearer $AUTHTOKEN" -s https://${UCP_FQDN}/api/clientbundle -o bundle.zip && unzip -o bundle.zip
+      export DOCKER_TLS_VERIFY=1 
+      export COMPOSE_TLS_VERSION=TLSv1_2
+      export DOCKER_CERT_PATH=$PWD
+      export DOCKER_HOST=tcp://${UCP_FQDN}:443 
+      docker login -u admin -p changeme https://${DTR_FQDN}
+      cat << EOT > docker-compose.yml
+      version: "3.4"
+      services:
+        web:
+          image: ${DTR_FQDN}/admin/${imageName}:latest
+          deploy:
+            labels:
+              com.docker.com.lb.hosts: ourapp.cicd.k8s.se
+              com.docker.lb.port: 8080
+              com.docker.lb.network: ourapp-network
+          networks:
+            - ourapp-network
+      networks:
+        ourapp-network:
+          driver: overlay
+      EOT
+      docker stack deploy -c docker-compose.yml ${imageName}
       ```
    1. Apply and save
 
