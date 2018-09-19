@@ -115,7 +115,7 @@ sudo curl -k \
   -o /etc/pki/ca-trust/source/anchors/${DTR_FQDN}:4443.crt
 sudo update-ca-trust
 sudo systemctl restart docker
-sudo docker login -u admin ${DTR_FQDN}:4443
+docker login -u admin ${DTR_FQDN}:4443
 ```
 
 ## Skapa ett repo för jenkins image och ladda ner security database
@@ -133,6 +133,7 @@ export DTR_FQDN="dev-dtr.cicd.k8s.se"
 AUTHTOKEN=$(curl -sk -d '{"username":"admin","password":"changeme"}' https://${UCP_FQDN}/auth/login | cut -d\" -f4)
 curl -k -H "Authorization: Bearer $AUTHTOKEN" -s https://${UCP_FQDN}/api/clientbundle -o bundle.zip && unzip -o bundle.zip
 source env.sh
+docker login -u admin -p changeme dev-dtr.cicd.k8s.se:4443
 docker info
 ```
 
@@ -162,7 +163,6 @@ RUN touch /var/jenkins_home/.last_exec_version && \
     /usr/local/bin/install-plugins.sh generic-webhook-trigger github
 EOT
 docker build -t ${DTR_FQDN}:4443/admin/jenkins:latest .
-cd ..
 docker image push ${DTR_FQDN}:4443/admin/jenkins:latest
 ```
 
