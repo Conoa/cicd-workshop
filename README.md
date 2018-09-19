@@ -67,6 +67,12 @@ docker container run -it --rm --name=ucp -v /var/run/docker.sock:/var/run/docker
 docker swarm join-token worker
 ```
 
+## Installera licenser
+Görs i GUI
+
+## Sätt upp layer 7 routing
+admin -> admin settings -> layer 7 routing -> enable
+
 ### Installera DTR i dev
 ```
 docker run -it --rm docker/dtr:latest install \
@@ -91,12 +97,6 @@ docker run -it --rm docker/dtr:latest install \
   --replica-http-port 81 \
   --dtr-external-url https://${DTR_FQDN}:4443
 ```
-
-## Installera licenser
-Görs i GUI
-
-## Sätt upp layer 7 routing
-admin -> admin settings -> layer 7 routing -> enable
 
 ## Sätt upp CA-trust i dev
 ```
