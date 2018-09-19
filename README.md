@@ -170,15 +170,15 @@ docker image push ${DTR_FQDN}:4443/admin/jenkins:latest
 Starta en jenkins container mha docker-compose.yml
 ```
 cat << EOT > docker-compose.yml
-version: '3.5'
+version: '3.0'
 services:
   jenkins:
-    image: dev-dtr.cicd.conoa.se:4443/admin/jenkins
+    image: dev-dtr.cicd.k8s.se:4443/admin/jenkins
     deploy:
       placement:
         constraints: [node.role == worker]
       labels:
-        com.docker.lb.hosts: dev-jenkins.cicd.conoa.se
+        com.docker.lb.hosts: dev-jenkins.cicd.k8s.se
         com.docker.lb.port: 8080
         com.docker.network: jenkins-network
     networks:
@@ -188,7 +188,7 @@ networks:
     driver: overlay
 EOT
 docker stack deploy -c docker-compose.yml jenkins
-curl -I -H "host: dev-jenkins.cicd.conoa.se" http://dev-jenkins.cicd.conoa.se
+curl -I http://dev-jenkins.cicd.k8s.se
 ```
 
 ## Skapa DTR repo i både dev och prod för vår kommande app
