@@ -119,6 +119,17 @@ sudo docker login -u admin ${DTR_FQDN}:4443
 ## Skapa ett repo för jenkins image och ladda ner security database
 1. http://dev-dtr.cicd.conoa.se:4443 -> new repo -> admin / jenkins
 1. system -> security -> enable scaning + sync database
+## Verifiera docker klienten
+```
+mkdir -p jenkins/build
+cd jenkins
+export UCP_FQDN="dev-ucp.cicd.conoa.se"
+export DTR_FQDN="dev-dtr.cicd.conoa.se"
+AUTHTOKEN=$(curl -sk -d '{"username":"admin","password":"changeme"}' https://${UCP_FQDN}/auth/login | cut -d\" -f4)
+curl -k -H "Authorization: Bearer $AUTHTOKEN" -s https://${UCP_FQDN}/api/clientbundle -o bundle.zip && unzip -o bundle.zip
+source env.sh
+docker info
+```
 
 ## Bygg jenkins i swarm
 ```
