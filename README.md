@@ -292,7 +292,7 @@ När en image inte har några critical vulnerabilities så promotas imagen till 
 1. Logga in i prod-dtr
 1. repositories -> admin/app -> webhooks
    1. Notifications to Receive: tag pushed to repo
-   1. http://dev-jenkins.cicd.conoa.se/generic-webhook-trigger/invoke?token=PKosy4fD6YCyzBHktQJw&imageName=app
+   1. http://dev-jenkins.cicd.k8s.se/generic-webhook-trigger/invoke?token=PKosy4fD6YCyzBHktQJw&imageName=app
 1. Logga in i http://dev-jenkins.cicd.k8s.se/
    1. Nytt jobb
       1. Name: DeployJob
@@ -341,5 +341,8 @@ När en image inte har några critical vulnerabilities så promotas imagen till 
       docker stack deploy -c docker-compose.yml ${repository}
       ```
    1. Apply and save
+   1. Promotea en image från dev-DTR
+   1. `curl -I http://ourapp.cicd.k8s.se`
+   
 
 
