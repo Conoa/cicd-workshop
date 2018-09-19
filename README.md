@@ -220,7 +220,8 @@ http://prod-dtr.cicd.conoa.se:4443 -> new repo -> admin / app
    1. Build
       1. Add build step -> execute shell
       1. ```
-         test -z ${repoName_0} && exit 1
+         imageName=${repoName}
+         test -z ${imageName} && exit 1
          export UCP_FQDN="dev-ucp.cicd.k8s.se"
          export DTR_FQDN="dev-dtr.cicd.k8s.se:4443"
          export ImageName="app"
@@ -231,11 +232,11 @@ http://prod-dtr.cicd.conoa.se:4443 -> new repo -> admin / app
          export DOCKER_CERT_PATH=$PWD
          export DOCKER_HOST=tcp://${UCP_FQDN}:443 
          docker login -u admin -p changeme https://${DTR_FQDN}
-         docker build -t ${repoName_0}:${BUILD_ID} .
-         docker tag ${repoName_0}:${BUILD_ID} ${DTR_FQDN}/admin/${repoName_0}:${BUILD_ID}
-         docker push ${DTR_FQDN}/admin/${repoName_0}:${BUILD_ID}
-         #docker tag ${repoName_0}:${BUILD_ID} ${DTR_FQDN}/admin/${repoName_0}:latest
-         #docker push ${DTR_FQDN}/admin/${repoName_0}:latest
+         docker build -t ${imageName}:${BUILD_ID} .
+         docker tag ${imageName}:${BUILD_ID} ${DTR_FQDN}/admin/${imageName}:${BUILD_ID}
+         docker push ${DTR_FQDN}/admin/${imageName}:${BUILD_ID}
+         #docker tag ${imageName}:${BUILD_ID} ${DTR_FQDN}/admin/${imageName}:latest
+         #docker push ${DTR_FQDN}/admin/${imageName}:latest
          ```
       1. Save or apply
 
@@ -243,7 +244,7 @@ http://prod-dtr.cicd.conoa.se:4443 -> new repo -> admin / app
 ## Konfigurera git repot
 1. Konfigurera github
    1. Settings (https://github.com/rjes/dops-final-project/settings)
-   1. Webhook URL: https://dev-jenkins.cicd.conoa.se/generic-webhook-trigger/invoke?token=3Hkv0zarwg2YtS8i9v2v
+   1. Webhook URL: http://dev-jenkins.cicd.conoa.se/generic-webhook-trigger/invoke?token=3Hkv0zarwg2YtS8i9v2v
    1. Disable SSL verification
    1. Push event
 
