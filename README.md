@@ -297,9 +297,7 @@ När en image inte har några critical vulnerabilities så promotas imagen till 
    1. Nytt jobb
       1. Name: DeployJob
       1. Type: Freestyle
-   1. SCM
-      1. Git
-      1. Repo URL: https://github.com/rjes/dops-final-project.git
+   1. SCM: `None`
    1. Generic Webhook Trigger
       1. Token: PKosy4fD6YCyzBHktQJw
       1. Post content parameters
