@@ -52,18 +52,7 @@ docker container run -it --rm --name=ucp -v /var/run/docker.sock:/var/run/docker
   --disable-usage
 docker swarm join-token worker
 ```
-### Installera DTR i dev
-```
-docker run -it --rm docker/dtr:latest install \
-  --ucp-insecure-tls \
-  --ucp-password changeme \
-  --ucp-username admin \
-  --ucp-url https://${DTR_FQDN} \
-  --ucp-node ${ENV}-ucp \
-  --replica-https-port 4443 \
-  --replica-http-port 81 \
-  --dtr-external-url https://${DTR_FQDN}:4443
-```
+
 ## Installera UCP i prod
 ```
 docker container run -it --rm --name=ucp -v /var/run/docker.sock:/var/run/docker.sock docker/ucp:latest install \
@@ -76,6 +65,19 @@ docker container run -it --rm --name=ucp -v /var/run/docker.sock:/var/run/docker
   --disable-tracking \
   --disable-usage
 docker swarm join-token worker
+```
+
+### Installera DTR i dev
+```
+docker run -it --rm docker/dtr:latest install \
+  --ucp-insecure-tls \
+  --ucp-password changeme \
+  --ucp-username admin \
+  --ucp-url https://${DTR_FQDN} \
+  --ucp-node ${ENV}-ucp \
+  --replica-https-port 4443 \
+  --replica-http-port 81 \
+  --dtr-external-url https://${DTR_FQDN}:4443
 ```
 ### Installera DTR i prod
 ```
