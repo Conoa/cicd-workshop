@@ -312,8 +312,7 @@ När en image inte har några critical vulnerabilities så promotas imagen till 
          1. Value filter: ``
    1. Build (shell commands)
       ```
-      test -z ${imageName} && exit 1
-      test ${imageName} == "foo/bar:latest" && exit 0
+      if [ -z ${imageName} ] || [ ${imageName} == "foo/bar:latest ] ; then exit 0 ; fi
       export UCP_FQDN="prod-ucp.cicd.k8s.se"
       export DTR_FQDN="prod-dtr.cicd.k8s.se:4443"
       AUTHTOKEN=$(curl -sk -d '{"username":"admin","password":"changeme"}' https://${UCP_FQDN}/auth/login | cut -d\" -f4)
