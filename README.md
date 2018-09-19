@@ -231,7 +231,7 @@ URL: http://dev-jenkins.cicd.k8s.se
          export COMPOSE_TLS_VERSION=TLSv1_2
          export DOCKER_CERT_PATH=$PWD
          export DOCKER_HOST=tcp://${UCP_FQDN}:443 
-         docker login -u admin -p changeme https://${DTR_FQDN}:4443
+         docker login -u admin -p changeme https://${DTR_FQDN}
          docker build -t ${imageName}:${BUILD_ID} .
          docker tag ${imageName}:${BUILD_ID} ${DTR_FQDN}/admin/${imageName}:${BUILD_ID}
          docker push ${DTR_FQDN}/admin/${imageName}:${BUILD_ID}
