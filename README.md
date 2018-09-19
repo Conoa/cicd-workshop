@@ -266,14 +266,15 @@ När en image inte har några critical vulnerabilities så promotas imagen till 
    1. Critical Vulnerabilities: Less or equal 0
    1. Add
    1. Target repo: admin/app-qa
-   1. tag-name: qa-%n
-   1. Save and apply
+   1. tag-name: %n
+   1. Save
 1. Trigga en webhook från github
 1. Det kommer ta c.a. 4 minuter att scana vår build.
 1. Visa att vi inte får någon image i app-qa samt att ingen promotion har körts i app repot
 
 ## Promotion från QA till prod DTR
-1. Gå in och ändra Critical Vulnerabilities: Less or equal till 20
+1. Ändra `app`repot's promotion
+   1. Critical Vulnerabilities: Less or equal till 20
 1. Trigga en ny webhook från github
 1. Verifiera att den senaste builden hamnar i app-qa repot
 1. Skapa ett nytt repo som används för att skeppa images mellan dev och prod.
@@ -282,10 +283,10 @@ När en image inte har några critical vulnerabilities så promotas imagen till 
       1. Registry URL: https prod-dtr.cicd.k8s.se:4443
       1. Advanced -> add CA from `curl https://${DTR_FQDN}:4443/ca`
       1. Repo: admin/app
-      1. Save and apply
-      1. Vi lägger inte till några triggers/filters eftersom vi vill pusha allt när det väl har passerat QA
-      1. Vi låter name vara som det är
-1. Manuell promotion
+      1. Save
+      1. Vi lägger inte till några `triggers/filters` eftersom vi vill pusha allt när det väl har passerat QA
+      1. Vi låter `tag name` vara som det är
+1. Manuell promotion från `app-qa`
    1. Klicka på `view details` på en image
    1. Klicka på `promote`
    1. Target repository: `admin / app-mirroring`
