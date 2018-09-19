@@ -250,7 +250,7 @@ URL: http://dev-jenkins.cicd.k8s.se
 
  
 ## Kontrollera byggjobbet i Jenkins
-1. Gå in i https://dev-jenkins.cicd.conoa.se/
+1. Gå in i https://dev-jenkins.cicd.k8s.se/
 1. Gå in i det aktuella bygget och klicka på "Console output"
 
 ## Kontrollera så imagen har skickats upp till DTR
