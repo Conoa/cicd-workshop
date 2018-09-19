@@ -124,12 +124,6 @@ sudo docker login -u admin ${DTR_FQDN}:4443
 ```
 mkdir -p jenkins/build
 cd jenkins
-export UCP_FQDN="dev-ucp.cicd.conoa.se"
-export DTR_FQDN="dev-dtr.cicd.conoa.se"
-sudo curl -k \
-  https://${DTR_FQDN}:4443/ca \
-  -o /etc/pki/ca-trust/source/anchors/${DTR_FQDN}:4443.crt
-sudo update-ca-trust
 AUTHTOKEN=$(curl -sk -d '{"username":"admin","password":"changeme"}' https://${UCP_FQDN}/auth/login | cut -d\" -f4)
 curl -k -H "Authorization: Bearer $AUTHTOKEN" -s https://${UCP_FQDN}/api/clientbundle -o bundle.zip && unzip -o bundle.zip
 source env.sh
