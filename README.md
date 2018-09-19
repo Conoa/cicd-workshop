@@ -207,11 +207,6 @@ http://prod-dtr.cicd.conoa.se:4443 -> new repo -> admin / app
       1. Repo URL: https://github.com/rjes/dops-final-project.git
    1. Build triggers
       1. Generic webhook trigger
-      1. Post content parameters
-         1. Variable: repoName
-         1. Expression: $.repository.name
-         1. Type: JSONPath
-         1. Value filter: [^a-z]
       1. Request parameters
          1. Request parameter: repoName
          1. Value filter: [^a-z]
@@ -235,8 +230,6 @@ http://prod-dtr.cicd.conoa.se:4443 -> new repo -> admin / app
          docker build -t ${imageName}:${BUILD_ID} .
          docker tag ${imageName}:${BUILD_ID} ${DTR_FQDN}/admin/${imageName}:${BUILD_ID}
          docker push ${DTR_FQDN}/admin/${imageName}:${BUILD_ID}
-         #docker tag ${imageName}:${BUILD_ID} ${DTR_FQDN}/admin/${imageName}:latest
-         #docker push ${DTR_FQDN}/admin/${imageName}:latest
          ```
       1. Save or apply
 
@@ -244,7 +237,9 @@ http://prod-dtr.cicd.conoa.se:4443 -> new repo -> admin / app
 ## Konfigurera git repot
 1. Konfigurera github
    1. Settings (https://github.com/rjes/dops-final-project/settings)
-   1. Webhook URL: http://dev-jenkins.cicd.conoa.se/generic-webhook-trigger/invoke?token=3Hkv0zarwg2YtS8i9v2v
+   1. Webhook URL:
+      1. URL: http://dev-jenkins.cicd.conoa.se/generic-webhook-trigger/invoke
+      1. Query parameter: token=3Hkv0zarwg2YtS8i9v2v&repoName=app
    1. Disable SSL verification
    1. Push event
 
