@@ -28,7 +28,8 @@ sudo systemctl start docker
 sudo systemctl enable docker
 sudo usermod -a -G docker centos
 cat << EOT >> .bashrc
-export DOMAIN="cicd.k8s.se"
+export DOMAIN="cicd.
+.se"
 export ENV=${HOSTNAME%-*}
 export UCP_FQDN="\${ENV}-ucp.\${DOMAIN}"
 export DTR_FQDN="\${ENV}-dtr.\${DOMAIN}"
@@ -116,7 +117,7 @@ docker login -u admin ${DTR_FQDN}:4443
 ```
 
 ## Skapa ett repo för jenkins image och ladda ner security database
-1. http://dev-dtr.cicd.k8s.se:4443 -> new repo -> admin / jenkins
+1. http://dev-dtr.cicd.conoa.se:4443 -> new repo -> admin / jenkins
 1. system -> security -> enable scaning + sync database
 
 ## Konfigurera vår lokala klient för att kommunicera mot Docker Swarm
@@ -125,12 +126,12 @@ Vi vill inte prata med vår lokala docker daemon utan med vår swarm.
 Med hjälp av client-bundle så kan vi kommunicera säkert med vår swarm, från både klient och servers perspektiv (Mutual SSL auth).
 ```
 mkdir ucp-api && cd ucp-api
-export UCP_FQDN="dev-ucp.cicd.k8s.se"
-export DTR_FQDN="dev-dtr.cicd.k8s.se"
+export UCP_FQDN="dev-ucp.cicd.conoa.se"
+export DTR_FQDN="dev-dtr.cicd.conoa.se"
 AUTHTOKEN=$(curl -sk -d '{"username":"admin","password":"changeme"}' https://${UCP_FQDN}/auth/login | cut -d\" -f4)
 curl -k -H "Authorization: Bearer $AUTHTOKEN" -s https://${UCP_FQDN}/api/clientbundle -o bundle.zip && unzip -o bundle.zip
 source env.sh
-docker login -u admin -p changeme dev-dtr.cicd.k8s.se:4443
+docker login -u admin -p changeme dev-dtr.cicd.conoa.se:4443
 docker info
 ```
 
@@ -170,12 +171,12 @@ cat << EOT > docker-compose.yml
 version: '3.0'
 services:
   jenkins:
-    image: dev-dtr.cicd.k8s.se:4443/admin/jenkins
+    image: dev-dtr.cicd.conoa.se:4443/admin/jenkins
     deploy:
       placement:
         constraints: [node.role == worker]
       labels:
-        com.docker.lb.hosts: dev-jenkins.cicd.k8s.se
+        com.docker.lb.hosts: dev-jenkins.cicd.conoa.se
         com.docker.lb.port: 8080
         com.docker.lb.network: jenkins-network
     networks:
@@ -185,20 +186,20 @@ networks:
     driver: overlay
 EOT
 docker stack deploy -c docker-compose.yml jenkins
-curl -I http://dev-jenkins.cicd.k8s.se
+curl -I http://dev-jenkins.cicd.conoa.se
 ```
 
 ## Skapa DTR repo i både dev och prod för vår kommande app
-http://dev-dtr.cicd.k8s.se:4443 -> new repo -> admin / app
+http://dev-dtr.cicd.conoa.se:4443 -> new repo -> admin / app
 
-http://prod-dtr.cicd.k8s.se:4443 -> new repo -> admin / app
+http://prod-dtr.cicd.conoa.se:4443 -> new repo -> admin / app
 
 ## Kodrepo för vårt bygge (om det behövs)
 1. https://github.com/docker-training/dops-final-project -> Fork
 1. Gå in i det forkade repot och verifiera att allting "ser bra ut"
 
 ## Konfigurera ett build jobb i Jenkins
-URL: http://dev-jenkins.cicd.k8s.se
+URL: http://dev-jenkins.cicd.conoa.se
 1. Skapa nytt item
 1. Name: BuildJob
 1. Typ: Freestyle
@@ -220,8 +221,8 @@ URL: http://dev-jenkins.cicd.k8s.se
       1. ```
          imageName=${repoName_0}
          test -z ${imageName} && exit 1
-         export UCP_FQDN="dev-ucp.cicd.k8s.se"
-         export DTR_FQDN="dev-dtr.cicd.k8s.se:4443"
+         export UCP_FQDN="dev-ucp.cicd.conoa.se"
+         export DTR_FQDN="dev-dtr.cicd.conoa.se:4443"
          export ImageName="app"
          AUTHTOKEN=$(curl -sk -d '{"username":"admin","password":"changeme"}' https://${UCP_FQDN}/auth/login | cut -d\" -f4)
          curl -k -H "Authorization: Bearer $AUTHTOKEN" -s https://${UCP_FQDN}/api/clientbundle -o bundle.zip && unzip -o bundle.zip
@@ -248,11 +249,11 @@ URL: http://dev-jenkins.cicd.k8s.se
 
  
 ## Kontrollera byggjobbet i Jenkins
-1. Gå in i https://dev-jenkins.cicd.k8s.se/
+1. Gå in i https://dev-jenkins.cicd.conoa.se/
 1. Gå in i det aktuella bygget och klicka på "Console output"
 
 ## Kontrollera så imagen har skickats upp till DTR
-1. Gå in på https://dev-dtr.cicd.k8s.se:4443
+1. Gå in på https://dev-dtr.cicd.conoa.se:4443
 1. Klicka på repositories -> admin/app -> images
 
 ## Enable security scans för vårt app repo och promotions
@@ -278,7 +279,7 @@ När en image inte har några critical vulnerabilities så promotas imagen till 
 1. Skapa ett nytt repo som används för att skeppa images mellan dev och prod.
    1. dev-dtr -> new repo -> admin/app-mirroring
    1. Sätt upp en ny mirror
-      1. Registry URL: https prod-dtr.cicd.k8s.se:4443
+      1. Registry URL: https prod-dtr.cicd.conoa.se:4443
       1. Advanced -> add CA from `curl https://${DTR_FQDN}:4443/ca`
       1. Repo: admin/app
       1. Save
@@ -296,8 +297,8 @@ När en image inte har några critical vulnerabilities så promotas imagen till 
 1. Logga in i prod-dtr
 1. repositories -> admin/app -> webhooks
    1. Notifications to Receive: tag pushed to repo
-   1. http://dev-jenkins.cicd.k8s.se/generic-webhook-trigger/invoke?token=PKosy4fD6YCyzBHktQJw&imageName=app
-1. Logga in i http://dev-jenkins.cicd.k8s.se/
+   1. http://dev-jenkins.cicd.conoa.se/generic-webhook-trigger/invoke?token=PKosy4fD6YCyzBHktQJw&imageName=app
+1. Logga in i http://dev-jenkins.cicd.conoa.se/
    1. Nytt jobb
       1. Name: DeployJob
       1. Type: Freestyle
@@ -317,15 +318,15 @@ När en image inte har några critical vulnerabilities så promotas imagen till 
    1. Build (shell commands)
       ```
       if [ -z ${imageName} ] || [ ${imageName} == "foo/bar:latest" ] ; then exit 0 ; fi
-      export UCP_FQDN="prod-ucp.cicd.k8s.se"
-      export DTR_FQDN="prod-dtr.cicd.k8s.se:4443"
+      export UCP_FQDN="prod-ucp.cicd.conoa.se"
+      export DTR_FQDN="prod-dtr.cicd.conoa.se"
       AUTHTOKEN=$(curl -sk -d '{"username":"admin","password":"changeme"}' https://${UCP_FQDN}/auth/login | cut -d\" -f4)
       curl -k -H "Authorization: Bearer $AUTHTOKEN" -s https://${UCP_FQDN}/api/clientbundle -o bundle.zip && unzip -o bundle.zip
       export DOCKER_TLS_VERIFY=1 
       export COMPOSE_TLS_VERSION=TLSv1_2
       export DOCKER_CERT_PATH=$PWD
       export DOCKER_HOST=tcp://${UCP_FQDN}:443 
-      docker login -u admin -p changeme https://${DTR_FQDN}
+      docker login -u admin -p changeme https://${DTR_FQDN}:4443
       cat << EOT > docker-compose.yml
       version: "3.0"
       services:
@@ -333,7 +334,7 @@ När en image inte har några critical vulnerabilities så promotas imagen till 
           image: ${DTR_FQDN}/${imageName}
           deploy:
             labels:
-              com.docker.lb.hosts: ourapp.cicd.k8s.se
+              com.docker.lb.hosts: ourapp.cicd.conoa.se
               com.docker.lb.port: 3000
               com.docker.lb.network: ourapp-network
           networks:
@@ -346,7 +347,7 @@ När en image inte har några critical vulnerabilities så promotas imagen till 
       ```
    1. Apply and save
    1. Promotea en image från dev-DTR
-   1. `curl -I http://ourapp.cicd.k8s.se`
+   1. `curl -I http://ourapp.cicd.conoa.se`
    
 
 
