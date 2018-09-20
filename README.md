@@ -7,14 +7,14 @@
 1. Lägg upp license i dev + prod
 1. Enable Layer 7 Routing
 1. Sätt upp CA-trust på alla 4 maskiner
-1. Skapa repot admin/jenkins i dev-DTR
+1. Bygg ut upstream imagen jenkins:lts
+1. Sätt upp jenkins som en service i vår swarm
 1. Bygg en Jenkins image och pusha till dev-dtr/admin/jenkins
-1. Starta jenkins container i dev-worker
-1. Skapa ett admin/app repo i dev och ett admin/app repo i prod
-1. Sätt upp ett github-repo med webhook mot vår test-dtr
-1. Skapa ett jenkins jobb som ska bygga vår test applikation, samt pusha till dev-DTR
+1. Sätt upp ett github-repo med webhook mot vår Jenkins
+1. Skapa ett jenkins jobb som ska bygga vår test applikation, samt pusha imagen till dev-DTR
 1. När en ny tag pushas in i dev-DTR så ska en säkerhetscan startas
-1. Promota en image från dev till prod
+1. Manuell promotion av en image från dev till prod
+1. Automatisk deployment av ny image
 
 ## Installera docker
 ```
