@@ -181,7 +181,7 @@ services:
       labels:
         com.docker.lb.hosts: dev-jenkins.cicd.k8s.se
         com.docker.lb.port: 8080
-        com.docker.network: jenkins-network
+        com.docker.lb.network: jenkins-network
     networks:
       - jenkins-network
 networks:
