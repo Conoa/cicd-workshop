@@ -123,7 +123,7 @@ docker login -u admin ${DTR_FQDN}:4443
 1. http://dev-dtr.cicd.k8s.se:4443 -> new repo -> admin / jenkins
 1. system -> security -> enable scaning + sync database
 
-## Sätt upp och verifiera vår lokala miljö
+## Konfigurera vår lokala klient för att kommunicera mot Docker Swarm
 Vi vill inte prata med vår lokala docker daemon utan med vår swarm.
 
 Med hjälp av client-bundle så kan vi kommunicera säkert med vår swarm, från både klient och servers perspektiv (Mutual SSL auth).
