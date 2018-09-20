@@ -1,5 +1,23 @@
 # cicd-workshop
 
+## Överblick
+1. Install docker
+1. Install UCP + DTR på en maskin + 1 worker i dev
+1. Install UCP + DTR på en maskin + 1 worker i prod
+1. Lägg upp license i dev + prod
+1. Enable Layer 7 Routing
+1. Sätt upp CA-trust på alla 4 maskiner
+1. Skapa repot admin/jenkins i dev-DTR
+1. Bygg en Jenkins image och pusha till dev-dtr/admin/jenkins
+1. Starta jenkins container i dev-worker
+1. Skapa ett admin/app repo i dev och ett admin/app repo i prod
+1. Sätt upp ett github-repo med webhook mot vår test-dtr
+1. Skapa ett jenkins jobb som ska bygga vår test applikation, samt pusha till dev-DTR
+1. När en ny tag pushas in i dev-DTR så ska en säkerhetscan startas
+  * Om sec-scan har mer än 1 critical: promota image till admin/vulnerable-app
+  * Om sec-scan har 0 crit: promota image (mirror) till prod-dtr/admin/app
+1. Manuell deploy av image till prod.
+
 ## Installera docker
 ```
 export DOCKERURL="https://storebits.docker.com/ee/centos/sub-7019e3a8-f1cf-434c-b454-952669b3e8b2"
