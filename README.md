@@ -80,7 +80,7 @@ docker run -it --rm docker/dtr:2.5.3 install \
   --ucp-insecure-tls \
   --ucp-password changeme \
   --ucp-username admin \
-  --ucp-url https://${DTR_FQDN} \
+  --ucp-url https://${UCP_FQDN} \
   --ucp-node ${ENV}-ucp \
   --replica-https-port 4443 \
   --replica-http-port 81 \
