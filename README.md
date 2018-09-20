@@ -49,6 +49,7 @@ docker swarm join-token worker
 
 ## Installera licenser
 Logga in på store.docker.com och hämta ut en trial license.
+Ladda upp licensen vid inloggning.
 
 ## Sätt upp layer 7 routing
 admin -> admin settings -> layer 7 routing -> enable
