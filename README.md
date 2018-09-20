@@ -76,7 +76,7 @@ admin -> admin settings -> layer 7 routing -> enable
 
 ### Installera DTR i dev
 ```
-docker run -it --rm docker/dtr:latest install \
+docker run -it --rm docker/dtr:2.5.5 install \
   --ucp-insecure-tls \
   --ucp-password changeme \
   --ucp-username admin \
@@ -88,7 +88,7 @@ docker run -it --rm docker/dtr:latest install \
 ```
 ### Installera DTR i prod
 ```
-docker run -it --rm docker/dtr:latest install \
+docker run -it --rm docker/dtr:2.5.5 install \
   --ucp-insecure-tls \
   --ucp-password changeme \
   --ucp-username admin \
