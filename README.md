@@ -271,8 +271,8 @@ När en image inte har några critical vulnerabilities så promotas imagen till 
 1. Visa att vi inte får någon image i app-qa samt att ingen promotion har körts i app repot
 
 ## Promotion från QA till prod DTR
-1. Ändra `app`repot's promotion
-   1. Critical Vulnerabilities: Less or equal till 20
+1. Ändra `app-qa`image och sätt critical vuln till false-positive
+   1. View details -> Components -> Hide CVE's
 1. Trigga en ny webhook från github
 1. Verifiera att den senaste builden hamnar i app-qa repot
 1. Skapa ett nytt repo som används för att skeppa images mellan dev och prod.
