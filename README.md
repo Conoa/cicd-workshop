@@ -14,9 +14,7 @@
 1. Sätt upp ett github-repo med webhook mot vår test-dtr
 1. Skapa ett jenkins jobb som ska bygga vår test applikation, samt pusha till dev-DTR
 1. När en ny tag pushas in i dev-DTR så ska en säkerhetscan startas
-  * Om sec-scan har mer än 1 critical: promota image till admin/vulnerable-app
-  * Om sec-scan har 0 crit: promota image (mirror) till prod-dtr/admin/app
-1. Manuell deploy av image till prod.
+1. Promota en image från dev till prod
 
 ## Installera docker
 ```
