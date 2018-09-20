@@ -42,7 +42,7 @@ EOT
 ```
 ## Installera UCP i dev
 ```
-docker container run -it --rm --name=ucp -v /var/run/docker.sock:/var/run/docker.sock docker/ucp:latest install \
+docker container run -it --rm --name=ucp -v /var/run/docker.sock:/var/run/docker.sock docker/ucp:3.0.2 install \
   --admin-username admin  \
   --admin-password changeme \
   --san ${UCP_FQDN} \
@@ -56,7 +56,7 @@ docker swarm join-token worker
 
 ## Installera UCP i prod
 ```
-docker container run -it --rm --name=ucp -v /var/run/docker.sock:/var/run/docker.sock docker/ucp:latest install \
+docker container run -it --rm --name=ucp -v /var/run/docker.sock:/var/run/docker.sock docker/ucp:3.0.2 install \
   --admin-username admin  \
   --admin-password changeme \
   --san ${UCP_FQDN} \
@@ -76,7 +76,7 @@ admin -> admin settings -> layer 7 routing -> enable
 
 ### Installera DTR i dev
 ```
-docker run -it --rm docker/dtr:latest install \
+docker run -it --rm docker/dtr:2.5.3 install \
   --ucp-insecure-tls \
   --ucp-password changeme \
   --ucp-username admin \
@@ -88,7 +88,7 @@ docker run -it --rm docker/dtr:latest install \
 ```
 ### Installera DTR i prod
 ```
-docker run -it --rm docker/dtr:latest install \
+docker run -it --rm docker/dtr:2.5.3 install \
   --ucp-insecure-tls \
   --ucp-password changeme \
   --ucp-username admin \
